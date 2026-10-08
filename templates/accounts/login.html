@@ -3,11 +3,11 @@
 
 {% block title %}
   {% if target_role == 'STUDENT' %}
-    Student Login - TeachLive
+    Student Login - Crystal AI
   {% elif target_role == 'TEACHER' %}
-    Teacher Portal Login - TeachLive
+    Teacher Portal Login - Crystal AI
   {% else %}
-    Sign In - TeachLive
+    Sign In - Crystal AI
   {% endif %}
 {% endblock %}
 
@@ -29,7 +29,7 @@
             {% elif target_role == 'STUDENT' %}
               Student Login
             {% else %}
-              Sign In to TeachLive
+              Sign In to Crystal AI
             {% endif %}
           </h2>
           <p id="login-subtitle" class="text-muted small mb-0">
@@ -217,7 +217,7 @@
     } else {
       pillAdmin.className = 'nav-link rounded-pill py-1 small fw-semibold active bg-dark text-white shadow-sm';
       googleContainer.classList.add('d-none');
-      loginTitle.textContent = 'Sign In to TeachLive';
+      loginTitle.textContent = 'Sign In to Crystal AI';
       loginSubtitle.textContent = 'Access your virtual classrooms, sessions, and records';
       roleIcon.className = 'bi bi-shield-lock-fill text-primary fs-2';
       iconWrapper.className = 'd-inline-flex p-3 rounded-circle mb-3 bg-primary bg-opacity-10 text-primary';

@@ -9,8 +9,8 @@ class CoreViewsTests(TestCase):
         client = Client()
         res = client.get(reverse('core:home'))
         self.assertEqual(res.status_code, 200)
-        self.assertContains(res, 'TeachLive')
-        self.assertContains(res, 'Teach Live. Learn Live.')
+        self.assertContains(res, 'Crystal AI')
+        self.assertContains(res, 'Smart Live Learning')
 
     def test_about_page(self):
         client = Client()

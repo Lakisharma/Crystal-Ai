@@ -331,7 +331,7 @@ class TeachLiveNotificationAndEmailTests(TestCase):
         self.assertTrue(success)
         self.assertEqual(len(mail.outbox), 1)
         sent = mail.outbox[0]
-        self.assertIn('Welcome to TeachLive', sent.subject)
+        self.assertIn('Welcome to Crystal AI', sent.subject)
         self.assertIn(self.teacher_user.email, sent.to)
 
         # Verify EmailLog was created
@@ -346,7 +346,7 @@ class TeachLiveNotificationAndEmailTests(TestCase):
         self.assertTrue(success)
         self.assertEqual(len(mail.outbox), 1)
         sent = mail.outbox[0]
-        self.assertIn('Welcome to TeachLive', sent.subject)
+        self.assertIn('Welcome to Crystal AI', sent.subject)
         self.assertIn(self.student_a.email, sent.to)
 
         # Verify EmailLog was created

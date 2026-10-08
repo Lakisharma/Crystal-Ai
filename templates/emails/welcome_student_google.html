@@ -1,11 +1,11 @@
 {% extends "emails/base_email.html" %}
 
-{% block email_title %}Welcome to TeachLive - Student Account Ready{% endblock %}
+{% block email_title %}Welcome to Crystal AI - Student Account Ready{% endblock %}
 
 {% block email_content %}
-  <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Welcome to TeachLive, {{ user.get_full_name|default:user.username }}!</h2>
+  <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Welcome to Crystal AI, {{ user.get_full_name|default:user.username }}!</h2>
   
-  <p>Your TeachLive student account has been successfully configured and linked with your Google credentials. You are now ready to join interactive live classes, collaborate with instructors in real-time, and track your attendance record.</p>
+  <p>Your Crystal AI student account has been successfully configured and linked with your Google credentials. You are now ready to join interactive live classes, collaborate with instructors in real-time, and track your attendance record.</p>
 
   <div class="info-box">
     <div class="info-row"><span class="info-label">Student Name:</span> <span class="info-value">{{ user.get_full_name|default:user.username }}</span></div>

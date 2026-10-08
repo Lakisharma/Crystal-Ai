@@ -4,7 +4,7 @@ from datetime import datetime
 def site_info(request):
     """Provides global site-wide variables to templates."""
     return {
-        'SITE_NAME': 'TeachLive',
-        'SITE_TAGLINE': 'Teach Live. Learn Live.',
+        'SITE_NAME': 'Crystal AI',
+        'SITE_TAGLINE': 'Smart Live Learning & AI Classroom',
         'CURRENT_YEAR': datetime.now().year,
     }

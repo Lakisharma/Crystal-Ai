@@ -1,9 +1,9 @@
 {% extends "emails/base_email.html" %}
 
-{% block email_title %}Welcome to TeachLive - Instructor Account Ready{% endblock %}
+{% block email_title %}Welcome to Crystal AI - Instructor Account Ready{% endblock %}
 
 {% block email_content %}
-  <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Welcome to TeachLive, Professor {{ user.get_full_name|default:user.username }}!</h2>
+  <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Welcome to Crystal AI, Professor {{ user.get_full_name|default:user.username }}!</h2>
   
   <p>Congratulations! Your instructor account has been created successfully. You now have full access to schedule virtual live classes, interact via real-time audio and video powered by LiveKit/WebRTC, conduct real-time class chats, and track verified student attendance.</p>
 

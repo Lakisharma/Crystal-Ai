@@ -261,7 +261,7 @@ class StudentAuthenticationAndGoogleTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, 'Student Login')
         self.assertContains(res, 'Continue with Google')
-        self.assertContains(res, 'TeachLive')
+        self.assertContains(res, 'Crystal AI')
         self.assertContains(res, 'Terms')
 
     def test_unauthenticated_student_redirect_preserves_next_url(self):

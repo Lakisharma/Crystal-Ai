@@ -80,7 +80,7 @@ def health_check_view(request):
 
     return JsonResponse({
         "status": "ok",
-        "service": "TeachLive",
+        "service": "Crystal AI",
     }, status=200)
 
 

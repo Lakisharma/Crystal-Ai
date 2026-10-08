@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Teacher Dashboard - TeachLive{% endblock %}
-{% block meta_description %}TeachLive Instructor Dashboard: monitor live classrooms, today's schedule, upcoming lectures, student attendance, and notifications.{% endblock %}
+{% block title %}Teacher Dashboard - Crystal AI{% endblock %}
+{% block meta_description %}Crystal AI Instructor Dashboard: monitor live classrooms, today's schedule, upcoming lectures, student attendance, and notifications.{% endblock %}
 
 {% block extra_css %}
 <meta name="robots" content="noindex, nofollow">
@@ -58,13 +58,13 @@
         <p class="text-white-50 small mb-0 d-flex align-items-center gap-2">
           <i class="bi bi-calendar3"></i> {{ today_date|date:"l, F d, Y" }}
           <span>&bull;</span>
-          <span>TeachLive Platform &bull; "Teach Live. Learn Live."</span>
+          <span>Crystal AI Platform &bull; "Crystal AI — Smart Live Learning & Virtual Classroom."</span>
         </p>
       </div>
 
       <!-- Quick Actions -->
       <div class="d-flex flex-wrap gap-2 align-items-center">
-        <a href="{% url 'classrooms:live_create' %}" class="btn btn-danger btn-lg px-4 shadow-sm d-flex align-items-center gap-2 rounded-pill fw-bold" id="btnCreateLiveClass">
+        <a href="{% url 'classrooms:live_create' %}" class="btn btn-danger btn-lg px-4 shadow-sm d-flex align-items-center gap-2 rounded-pill fw-bold" id="btnCreateCrystal AI">
           <i class="bi bi-broadcast"></i>
           <span>Create Live Class</span>
         </a>
@@ -510,7 +510,7 @@
           </div>
 
           <p class="small text-secondary mb-3">
-            {{ teacher.bio|default:"Instructor at TeachLive Virtual Learning Platform." }}
+            {{ teacher.bio|default:"Instructor at Crystal AI Virtual Learning Platform." }}
           </p>
 
           <ul class="list-group list-group-flush small">

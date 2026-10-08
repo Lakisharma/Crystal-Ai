@@ -295,9 +295,9 @@ EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 't', 'yes')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'TeachLive <no-reply@teachlive.edu>')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Crystal AI <no-reply@crystalai.edu>')
  
-# TeachLive Class Scheduling Configuration
+# Crystal AI Class Scheduling Configuration
 CLASS_EARLY_START_MINUTES = int(os.getenv('CLASS_EARLY_START_MINUTES', 15))
 CLASS_EARLY_JOIN_MINUTES = int(os.getenv('CLASS_EARLY_JOIN_MINUTES', 10))
 MIN_CLASS_DURATION_MINUTES = int(os.getenv('MIN_CLASS_DURATION_MINUTES', 5))

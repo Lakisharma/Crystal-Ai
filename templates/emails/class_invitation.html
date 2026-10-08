@@ -3,7 +3,7 @@
 {% block email_title %}Class Invitation: {{ live_class.title }}{% endblock %}
 
 {% block email_content %}
-  <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">You're Invited to a TeachLive Class</h2>
+  <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">You're Invited to a Crystal AI Class</h2>
   
   <p>Hello {{ student.get_full_name|default:student.username }},</p>
   <p>Professor <strong>{{ live_class.teacher.get_full_name|default:live_class.teacher.username }}</strong> has invited you to participate in the live class <strong>"{{ live_class.title }}"</strong>.</p>

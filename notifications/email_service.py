@@ -38,7 +38,7 @@ class EmailService:
             html_content = render_to_string(template_name, context)
             plain_text = strip_tags(html_content).strip()
 
-            from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'TeachLive <no-reply@teachlive.edu>')
+            from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'Crystal AI <no-reply@crystalai.edu>')
 
             send_mail(
                 subject=subject,
@@ -90,7 +90,7 @@ class EmailService:
         }
         return cls.send_teachlive_email(
             to_email=user.email,
-            subject="Welcome to TeachLive - Instructor Account Ready",
+            subject="Welcome to Crystal AI - Instructor Account Ready",
             template_name="emails/welcome_teacher.html",
             context=context,
             email_type="WELCOME_TEACHER"
@@ -105,7 +105,7 @@ class EmailService:
         }
         return cls.send_teachlive_email(
             to_email=user.email,
-            subject="Welcome to TeachLive - Student Account Ready",
+            subject="Welcome to Crystal AI - Student Account Ready",
             template_name="emails/welcome_student_google.html",
             context=context,
             email_type="WELCOME_STUDENT_GOOGLE"
@@ -120,7 +120,7 @@ class EmailService:
         }
         return cls.send_teachlive_email(
             to_email=user.email,
-            subject="Welcome to TeachLive - Student Account Ready",
+            subject="Welcome to Crystal AI - Student Account Ready",
             template_name="emails/welcome_student_google.html",
             context=context,
             email_type="WELCOME_STUDENT"
