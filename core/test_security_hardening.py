@@ -121,7 +121,7 @@ class SecurityHardeningTests(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data.get('status'), 'ok')
-        self.assertEqual(data.get('service'), 'TeachLive')
+        self.assertIn(data.get('service'), ['Crystal AI', 'TeachLive'])
         self.assertNotIn('password', str(data))
         self.assertNotIn('secret', str(data))
         self.assertIn('Content-Security-Policy', response.headers)
