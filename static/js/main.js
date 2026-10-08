@@ -70,12 +70,55 @@ document.addEventListener('DOMContentLoaded', () => {
         const spinner = document.createElement('span');
         spinner.className = 'spinner-border spinner-border-sm me-2';
         spinner.setAttribute('role', 'status');
-        spinner.setAttribute('aria-hidden', 'true');
         submitBtn.prepend(spinner);
       }
     });
   });
+
+  // Initialize Dark / Light Mode Toggle
+  initThemeToggle();
 });
+
+/**
+ * Dark / Light Theme Toggle with LocalStorage persistence and icon swapping
+ */
+function initThemeToggle() {
+  const toggleBtn = document.getElementById('themeToggleBtn');
+  if (!toggleBtn) return;
+  const html = document.documentElement;
+
+  function syncThemeUI(theme) {
+    const darkIcon = toggleBtn.querySelector('.theme-icon-dark');
+    const lightIcon = toggleBtn.querySelector('.theme-icon-light');
+    if (theme === 'dark') {
+      if (darkIcon) darkIcon.classList.add('d-none');
+      if (lightIcon) lightIcon.classList.remove('d-none');
+      toggleBtn.setAttribute('title', 'Switch to Light Mode');
+      toggleBtn.setAttribute('aria-label', 'Switch to Light Mode');
+    } else {
+      if (darkIcon) darkIcon.classList.remove('d-none');
+      if (lightIcon) lightIcon.classList.add('d-none');
+      toggleBtn.setAttribute('title', 'Switch to Dark Mode');
+      toggleBtn.setAttribute('aria-label', 'Switch to Dark Mode');
+    }
+  }
+
+  // Initial sync with active attribute
+  const activeTheme = html.getAttribute('data-bs-theme') || 'light';
+  syncThemeUI(activeTheme);
+
+  toggleBtn.addEventListener('click', () => {
+    const currentTheme = html.getAttribute('data-bs-theme') || 'light';
+    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-bs-theme', nextTheme);
+    try {
+      localStorage.setItem('crystal-theme', nextTheme);
+    } catch (e) {
+      console.warn('LocalStorage unavailable for theme storage:', e);
+    }
+    syncThemeUI(nextTheme);
+  });
+}
 
 /**
  * Helper to retrieve CSRF token from browser cookies for AJAX/Fetch calls.

@@ -11,99 +11,101 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="py-5 mb-5 bg-white border-bottom">
+<section class="py-5 mb-5 border-bottom hero-section-custom">
   <div class="container py-3 py-lg-4">
     <div class="row align-items-center g-5">
       <div class="col-lg-7">
-        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-3 rounded-pill bg-primary-subtle text-primary fw-semibold small border border-primary-subtle">
-          <i class="bi bi-gem"></i> WebRTC Powered • Zero Software Downloads
+        <div class="d-inline-flex align-items-center gap-2 px-3.5 py-1.5 mb-3 rounded-pill hero-badge small border shadow-xs">
+          <i class="bi bi-stars"></i>
+          <span class="fw-semibold">Next-Gen Live Learning • AI-Powered WebRTC</span>
         </div>
-        <h1 class="display-4 fw-extrabold text-dark tracking-tight mb-2">
-          Crystal AI
+        <h1 class="display-4 fw-extrabold tracking-tight mb-3">
+          Empowering Education with <span class="crystal-gradient-text">Crystal AI</span> Live Classroom
         </h1>
-        <p class="h3 fw-semibold text-primary mb-3">Smart Live Learning & AI Classroom</p>
-        <p class="lead text-secondary mb-4 fs-6" style="line-height: 1.7; max-width: 580px;">
-          Experience effortless live online classes right in your browser. Crystal AI equips educators with HD video conferencing, one-click student access, real-time classroom chat, and automated attendance logging.
+        <p class="lead text-secondary mb-4 fs-6" style="line-height: 1.75; max-width: 600px;">
+          Experience effortless live online classes right in your browser. Crystal AI equips educators and students with HD video conferencing, automated smart attendance, real-time collaboration, and 1-click Google access — with zero downloads required.
         </p>
 
         <div class="d-flex flex-wrap gap-3 pt-2">
           {% if user.is_authenticated %}
             {% if user.is_teacher or user.is_admin_role %}
-              <a href="{% url 'accounts:teacher_dashboard' %}" class="btn btn-primary btn-lg px-4 shadow-sm">
+              <a href="{% url 'accounts:teacher_dashboard' %}" class="btn btn-primary btn-lg px-4 py-2.5 rounded-pill shadow-sm d-inline-flex align-items-center fw-semibold">
                 <i class="bi bi-speedometer2 me-2"></i> Teacher Dashboard
               </a>
-              <a href="{% url 'classrooms:create' %}" class="btn btn-outline-primary btn-lg px-4">
+              <a href="{% url 'classrooms:create' %}" class="btn btn-outline-primary btn-lg px-4 py-2.5 rounded-pill d-inline-flex align-items-center fw-semibold">
                 <i class="bi bi-plus-circle me-2"></i> Schedule Class
               </a>
             {% else %}
-              <a href="{% url 'student:dashboard' %}" class="btn btn-primary btn-lg px-4 shadow-sm">
+              <a href="{% url 'student:dashboard' %}" class="btn btn-primary btn-lg px-4 py-2.5 rounded-pill shadow-sm d-inline-flex align-items-center fw-semibold">
                 <i class="bi bi-speedometer2 me-2"></i> Student Dashboard
               </a>
-              <a href="{% url 'student:classes' %}" class="btn btn-outline-primary btn-lg px-4">
+              <a href="{% url 'student:classes' %}" class="btn btn-outline-primary btn-lg px-4 py-2.5 rounded-pill d-inline-flex align-items-center fw-semibold">
                 <i class="bi bi-journal-bookmark me-2"></i> My Classes
               </a>
             {% endif %}
           {% else %}
-            <a href="{% url 'accounts:teacher_register' %}" class="btn btn-primary btn-lg px-4 shadow-sm fw-bold">
-              <i class="bi bi-person-workspace me-2"></i> Start Teaching
+            <a href="{% url 'accounts:teacher_register' %}" class="btn btn-primary btn-lg px-4.5 py-2.5 rounded-pill shadow-sm fw-bold d-inline-flex align-items-center">
+              <i class="bi bi-person-video3 me-2"></i> Start Teaching Free
             </a>
-            <a href="{% url 'student:login' %}" class="btn btn-outline-primary btn-lg px-4 fw-bold">
-              <i class="bi bi-mortarboard-fill me-2"></i> Join a Class
-            </a>
-            <a href="{% url 'accounts:login' %}" class="btn btn-navy btn-lg px-4 fw-semibold">
-              Sign In
+            <a href="{% url 'student:login' %}" class="btn btn-outline-primary btn-lg px-4.5 py-2.5 rounded-pill fw-bold d-inline-flex align-items-center">
+              <i class="bi bi-mortarboard-fill me-2"></i> Join Live Class
             </a>
           {% endif %}
         </div>
 
         <div class="d-flex flex-wrap align-items-center gap-4 mt-4 pt-3 border-top text-secondary small">
-          <div><i class="bi bi-shield-check text-success me-1"></i> End-to-End Encrypted WebRTC</div>
-          <div><i class="bi bi-check2-circle text-primary me-1"></i> Automated Attendance</div>
-          <div><i class="bi bi-google text-danger me-1"></i> 1-Click Student Google Login</div>
+          <div class="d-flex align-items-center"><i class="bi bi-shield-check text-success me-1.5 fs-6"></i> End-to-End Encrypted WebRTC</div>
+          <div class="d-flex align-items-center"><i class="bi bi-check2-circle text-primary me-1.5 fs-6"></i> Automated Attendance</div>
+          <div class="d-flex align-items-center"><i class="bi bi-google text-danger me-1.5 fs-6"></i> 1-Click Google Access</div>
+          <div class="d-flex align-items-center"><i class="bi bi-laptop text-info me-1.5 fs-6"></i> Zero Installation</div>
         </div>
       </div>
 
       <div class="col-lg-5">
-        <div class="card card-modern p-4 p-lg-5 border shadow-sm bg-white">
+        <div class="card card-modern p-4 p-lg-5 border shadow-sm">
           <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-broadcast text-primary me-2"></i> Quick Class Portal</h5>
-            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Ready</span>
+            <h5 class="fw-bold mb-0 d-flex align-items-center">
+              <i class="bi bi-broadcast text-primary me-2"></i> Quick Class Portal
+            </h5>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill d-inline-flex align-items-center">
+              <span class="status-dot-pulse me-1.5"></span> Live & Ready
+            </span>
           </div>
 
           <p class="text-secondary small mb-4">
-            Instant entry for teachers and students across Chrome, Edge, Safari, and Firefox.
+            Instant browser-native entry for educators and students across all modern devices.
           </p>
 
           <div class="d-grid gap-3 mb-4">
             <a href="{% url 'accounts:teacher_login' %}" class="card card-modern p-3 text-decoration-none border d-flex flex-row align-items-center justify-content-between">
               <div class="d-flex align-items-center">
-                <div class="p-2 rounded-3 bg-primary-subtle text-primary me-3">
+                <div class="p-2.5 rounded-3 bg-primary-subtle text-primary me-3">
                   <i class="bi bi-person-video3 fs-5"></i>
                 </div>
                 <div>
-                  <h6 class="mb-0 fw-bold text-dark">Teacher Sign In</h6>
-                  <small class="text-muted">Launch live classes & manage rosters</small>
+                  <h6 class="mb-0 fw-bold">Teacher Portal</h6>
+                  <small class="text-secondary">Host live classes & manage rosters</small>
                 </div>
               </div>
-              <i class="bi bi-arrow-right text-muted"></i>
+              <i class="bi bi-arrow-right text-secondary"></i>
             </a>
 
             <a href="{% url 'student:login' %}" class="card card-modern p-3 text-decoration-none border d-flex flex-row align-items-center justify-content-between">
               <div class="d-flex align-items-center">
-                <div class="p-2 rounded-3 bg-info-subtle text-info me-3">
+                <div class="p-2.5 rounded-3 bg-info-subtle text-info me-3">
                   <i class="bi bi-google fs-5"></i>
                 </div>
                 <div>
-                  <h6 class="mb-0 fw-bold text-dark">Student Sign In</h6>
-                  <small class="text-muted">Join with Google or room code</small>
+                  <h6 class="mb-0 fw-bold">Student Portal</h6>
+                  <small class="text-secondary">Instant Google login or room code</small>
                 </div>
               </div>
-              <i class="bi bi-arrow-right text-muted"></i>
+              <i class="bi bi-arrow-right text-secondary"></i>
             </a>
           </div>
 
-          <div class="p-3 bg-light rounded-3 text-center small text-secondary">
-            <i class="bi bi-laptop me-1"></i> No software install needed. Runs entirely in your modern browser.
+          <div class="p-3 bg-body-tertiary rounded-3 text-center small text-secondary border">
+            <i class="bi bi-check-circle-fill text-success me-1"></i> No software install needed. Runs entirely in your modern browser.
           </div>
         </div>
       </div>

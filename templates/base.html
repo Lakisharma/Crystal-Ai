@@ -5,8 +5,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>{% block title %}Crystal AI — Crystal AI — Smart Live Learning & Virtual Classroom.{% endblock %}</title>
+  <title>{% block title %}Crystal AI — Smart Live Learning & Virtual Classroom{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}Crystal AI is a modern, responsive SaaS platform for virtual learning, WebRTC live video classes, attendance tracking, and academic moderation.{% endblock %}">
+
+  <!-- Color Theme Pre-Initialization (Prevents FOUC) -->
+  <script>
+    (function() {
+      try {
+        const savedTheme = localStorage.getItem('crystal-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+      } catch (e) {
+        document.documentElement.setAttribute('data-bs-theme', 'light');
+      }
+    })();
+  </script>
 
   <!-- SEO & Robots Directive: Private pages noindex by default; public pages override -->
   {% block meta_robots %}
@@ -15,12 +27,12 @@
 
   <!-- Open Graph / Meta -->
   <meta property="og:site_name" content="Crystal AI">
-  <meta property="og:title" content="{% block og_title %}Crystal AI — Crystal AI — Smart Live Learning & Virtual Classroom.{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}Crystal AI — Smart Live Learning & Virtual Classroom{% endblock %}">
   <meta property="og:description" content="{% block og_description %}Professional browser-native live video classes, automated attendance, and academic discussion.{% endblock %}">
   <meta property="og:type" content="website">
 
   <!-- Favicon / Brand Icon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💎</text></svg>">
 
   <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">

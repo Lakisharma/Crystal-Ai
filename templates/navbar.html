@@ -1,8 +1,8 @@
 {% load static %}
-<nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center py-0 me-3" href="{% url 'core:home' %}">
-      <span class="crystal-brand-icon me-2">
+      <span class="crystal-brand-icon me-2.5">
         <i class="bi bi-gem"></i>
       </span>
       <span class="d-flex align-items-center">
@@ -16,20 +16,20 @@
     </button>
 
     <div class="collapse navbar-collapse" id="navbarContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center gap-1">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center gap-1 ms-lg-2">
         <li class="nav-item">
           <a class="nav-link modern-nav-link px-3 py-1.5" href="{% url 'core:home' %}">
-            <i class="bi bi-house-door me-1.5 text-primary"></i> Home
+            <i class="bi bi-house-door me-2 text-primary"></i> Home
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link modern-nav-link px-3 py-1.5" href="{% url 'core:about' %}">
-            <i class="bi bi-info-circle me-1.5 text-info"></i> About
+            <i class="bi bi-info-circle me-2 text-primary"></i> About
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link modern-nav-link px-3 py-1.5" href="{% url 'core:contact' %}">
-            <i class="bi bi-envelope me-1.5 text-success"></i> Contact
+            <i class="bi bi-envelope me-2 text-primary"></i> Contact
           </a>
         </li>
 
@@ -225,22 +225,22 @@
             <a class="nav-link modern-nav-dropdown dropdown-toggle px-3 py-1.5" href="#" id="teacherMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-person-video3 me-1.5 text-primary"></i> Teachers
             </a>
-            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border border-secondary border-opacity-25" aria-labelledby="teacherMenu">
+            <ul class="dropdown-menu dropdown-menu-end shadow border" aria-labelledby="teacherMenu">
               <li>
                 <a class="dropdown-item py-2 small d-flex align-items-center" href="{% url 'accounts:teacher_login' %}">
-                  <span class="p-1 rounded-2 bg-primary bg-opacity-25 text-primary me-2 d-inline-flex"><i class="bi bi-box-arrow-in-right"></i></span>
+                  <span class="p-1 rounded-2 bg-primary bg-opacity-10 text-primary me-2.5 d-inline-flex"><i class="bi bi-box-arrow-in-right"></i></span>
                   <div>
-                    <div class="fw-semibold text-white">Teacher Login</div>
+                    <div class="fw-semibold">Teacher Login</div>
                     <div class="text-secondary" style="font-size: 0.75rem;">Access classes & rosters</div>
                   </div>
                 </a>
               </li>
-              <li><hr class="dropdown-divider border-secondary border-opacity-25 my-1"></li>
+              <li><hr class="dropdown-divider my-1"></li>
               <li>
                 <a class="dropdown-item py-2 small d-flex align-items-center" href="{% url 'accounts:teacher_register' %}">
-                  <span class="p-1 rounded-2 bg-success bg-opacity-25 text-success me-2 d-inline-flex"><i class="bi bi-person-plus"></i></span>
+                  <span class="p-1 rounded-2 bg-success bg-opacity-10 text-success me-2.5 d-inline-flex"><i class="bi bi-person-plus"></i></span>
                   <div>
-                    <div class="fw-semibold text-white">Register as Teacher</div>
+                    <div class="fw-semibold">Register as Teacher</div>
                     <div class="text-secondary" style="font-size: 0.75rem;">Create instructor account</div>
                   </div>
                 </a>
@@ -251,33 +251,33 @@
           <!-- Student Portal Dropdown -->
           <li class="nav-item dropdown">
             <a class="nav-link modern-nav-dropdown dropdown-toggle px-3 py-1.5" href="#" id="studentMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-mortarboard me-1.5 text-info"></i> Students
+              <i class="bi bi-mortarboard me-1.5 text-primary"></i> Students
             </a>
-            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border border-secondary border-opacity-25" aria-labelledby="studentMenu">
+            <ul class="dropdown-menu dropdown-menu-end shadow border" aria-labelledby="studentMenu">
               <li>
                 <a class="dropdown-item py-2 small d-flex align-items-center" href="{% url 'student:login' %}">
-                  <span class="p-1 rounded-2 bg-danger bg-opacity-25 text-danger me-2 d-inline-flex"><i class="bi bi-google"></i></span>
+                  <span class="p-1 rounded-2 bg-danger bg-opacity-10 text-danger me-2.5 d-inline-flex"><i class="bi bi-google"></i></span>
                   <div>
-                    <div class="fw-semibold text-white">Continue with Google</div>
+                    <div class="fw-semibold">Continue with Google</div>
                     <div class="text-secondary" style="font-size: 0.75rem;">Instant 1-click Google login</div>
                   </div>
                 </a>
               </li>
               <li>
                 <a class="dropdown-item py-2 small d-flex align-items-center" href="{% url 'accounts:student_login' %}">
-                  <span class="p-1 rounded-2 bg-secondary bg-opacity-25 text-light me-2 d-inline-flex"><i class="bi bi-key"></i></span>
+                  <span class="p-1 rounded-2 bg-secondary bg-opacity-10 text-secondary me-2.5 d-inline-flex"><i class="bi bi-key"></i></span>
                   <div>
-                    <div class="fw-semibold text-white">Student Password Login</div>
+                    <div class="fw-semibold">Student Password Login</div>
                     <div class="text-secondary" style="font-size: 0.75rem;">Sign in with password</div>
                   </div>
                 </a>
               </li>
-              <li><hr class="dropdown-divider border-secondary border-opacity-25 my-1"></li>
+              <li><hr class="dropdown-divider my-1"></li>
               <li>
                 <a class="dropdown-item py-2 small d-flex align-items-center" href="{% url 'accounts:student_register' %}">
-                  <span class="p-1 rounded-2 bg-success bg-opacity-25 text-success me-2 d-inline-flex"><i class="bi bi-person-plus"></i></span>
+                  <span class="p-1 rounded-2 bg-success bg-opacity-10 text-success me-2.5 d-inline-flex"><i class="bi bi-person-plus"></i></span>
                   <div>
-                    <div class="fw-semibold text-white">Create Student Account</div>
+                    <div class="fw-semibold">Create Student Account</div>
                     <div class="text-secondary" style="font-size: 0.75rem;">Sign up with username</div>
                   </div>
                 </a>
@@ -292,6 +292,14 @@
             </a>
           </li>
         {% endif %}
+
+        <!-- Dark / Light Mode Toggle Button -->
+        <li class="nav-item ms-lg-2">
+          <button class="btn theme-toggle-btn d-inline-flex align-items-center justify-content-center" id="themeToggleBtn" type="button" aria-label="Toggle dark/light mode" title="Toggle Dark/Light Mode">
+            <i class="bi bi-moon-stars-fill theme-icon-dark"></i>
+            <i class="bi bi-sun-fill theme-icon-light d-none"></i>
+          </button>
+        </li>
       </ul>
     </div>
   </div>
