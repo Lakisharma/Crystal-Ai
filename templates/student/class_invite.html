@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Class Invitation - TeachLive" }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+
+      {% if invalid_token %}
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+          <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex mx-auto mb-3" style="width: 72px; height: 72px; align-items: center; justify-content: center;">
+            <i class="bi bi-link-45deg fs-1"></i>
+          </div>
+          <h3 class="fw-bold text-dark mb-2">Invalid Invitation Link</h3>
+          <p class="text-secondary mb-4">
+            {{ error_message|default:"This class invitation link is invalid, has expired, or was revoked by the instructor." }}
+          </p>
+          <div class="d-flex justify-content-center gap-2">
+            <a href="{% url 'student:classes' %}" class="btn btn-primary rounded-pill px-4">
+              <i class="bi bi-journal-bookmark me-1"></i> My Classes
+            </a>
+            <a href="{% url 'student:dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">
+              <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+          </div>
+        </div>
+
+      {% elif is_revoked %}
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+          <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex mx-auto mb-3" style="width: 72px; height: 72px; align-items: center; justify-content: center;">
+            <i class="bi bi-slash-circle fs-1"></i>
+          </div>
+          <h3 class="fw-bold text-danger mb-2">Access Revoked</h3>
+          <p class="text-secondary mb-4">
+            Your access to <strong>{{ live_class.title }}</strong> was previously revoked by the instructor. You cannot re-enter or enroll using this link. Please contact your instructor.
+          </p>
+          {% if enrollment.revocation_reason %}
+            <div class="alert alert-light border small text-muted mb-4">
+              Reason recorded: <em>"{{ enrollment.revocation_reason }}"</em>
+            </div>
+          {% endif %}
+          <div>
+            <a href="{% url 'student:classes' %}" class="btn btn-outline-secondary rounded-pill px-4">
+              Return to My Classes
+            </a>
+          </div>
+        </div>
+
+      {% elif is_enrolled %}
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+          <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle d-inline-flex mx-auto mb-3" style="width: 72px; height: 72px; align-items: center; justify-content: center;">
+            <i class="bi bi-check-circle fs-1"></i>
+          </div>
+          <h3 class="fw-bold text-dark mb-2">Already Enrolled</h3>
+          <p class="text-secondary mb-4">
+            You are already actively enrolled in <strong>{{ live_class.title }}</strong>.
+          </p>
+          <div class="d-flex justify-content-center gap-2">
+            <a href="{% url 'student:class_detail' live_class.id %}" class="btn btn-primary rounded-pill px-4">
+              <i class="bi bi-eye me-1"></i> View Class Details
+            </a>
+            <a href="{% url 'student:classes' %}" class="btn btn-outline-secondary rounded-pill px-4">
+              My Classes
+            </a>
+          </div>
+        </div>
+
+      {% elif is_full %}
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+          <div class="p-3 bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex mx-auto mb-3" style="width: 72px; height: 72px; align-items: center; justify-content: center;">
+            <i class="bi bi-people fs-1"></i>
+          </div>
+          <h3 class="fw-bold text-dark mb-2">Class is Full</h3>
+          <p class="text-secondary mb-4">
+            <strong>{{ live_class.title }}</strong> has reached its maximum seat capacity of {{ live_class.max_students }} students.
+          </p>
+          <div>
+            <a href="{% url 'student:classes' %}" class="btn btn-outline-secondary rounded-pill px-4">
+              Return to My Classes
+            </a>
+          </div>
+        </div>
+
+      {% else %}
+        <!-- Valid Invite Presentation -->
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
+          <div class="bg-primary text-white p-4 text-center">
+            <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold text-uppercase mb-2">Class Invitation</span>
+            <h3 class="fw-bold mb-1">{{ live_class.title }}</h3>
+            <p class="text-white-50 small mb-0">{{ live_class.subject }}</p>
+          </div>
+
+          <div class="card-body p-4">
+            <div class="p-3 bg-light rounded-3 mb-4">
+              <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="avatar-circle bg-primary text-white fw-bold" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                  {{ teacher.username|make_list|first|upper }}
+                </div>
+                <div>
+                  <h6 class="fw-bold text-dark mb-0">Prof. {{ teacher.get_full_name|default:teacher.username }}</h6>
+                  <span class="text-muted small">Course Instructor</span>
+                </div>
+              </div>
+              <p class="text-secondary small mb-0">
+                {{ live_class.description|default:"You have been invited to participate in this live class session." }}
+              </p>
+            </div>
+
+            <ul class="list-group list-group-flush mb-4 small">
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <span class="text-muted"><i class="bi bi-calendar3 me-2 text-primary"></i> Schedule</span>
+                <strong>{{ live_class.scheduled_date|date:"F d, Y" }} at {{ live_class.scheduled_time|time:"g:i A" }}</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <span class="text-muted"><i class="bi bi-hourglass-split me-2 text-info"></i> Duration</span>
+                <strong>{{ live_class.duration }} minutes</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <span class="text-muted"><i class="bi bi-people me-2 text-success"></i> Available Seats</span>
+                <strong>{% if live_class.max_students > 0 %}{{ available_seats }} left{% else %}Open Capacity{% endif %}</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <span class="text-muted"><i class="bi bi-key me-2 text-warning"></i> Room Code</span>
+                <span class="font-monospace text-dark">{{ live_class.room_code }}</span>
+              </li>
+            </ul>
+
+            <div class="d-flex flex-column gap-2">
+              <form method="post" action="{% url 'student:class_invite' token_obj.token %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="accept">
+                <button type="submit" class="btn btn-success btn-lg rounded-pill w-100 fw-bold shadow-sm">
+                  <i class="bi bi-check-circle-fill me-1"></i> Accept Invitation & Enroll
+                </button>
+              </form>
+
+              <form method="post" action="{% url 'student:class_invite' token_obj.token %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="decline">
+                <button type="submit" class="btn btn-outline-secondary rounded-pill w-100 fw-semibold" onclick="return confirm('Are you sure you want to decline this invitation?');">
+                  <i class="bi bi-x-circle me-1"></i> Decline
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Instructor Profile - LiveClass{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <!-- Profile Header Card -->
+      <div class="card card-modern p-4 mb-4 border-0 shadow-sm bg-white">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="avatar-circle" style="width: 72px; height: 72px; font-size: 1.8rem;">
+              {{ teacher.username|make_list|first|upper }}
+            </div>
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <h3 class="fw-bold mb-0">{{ teacher.get_full_name|default:teacher.username }}</h3>
+                <span class="badge badge-role-teacher">Instructor</span>
+              </div>
+              <p class="text-secondary small mb-1">
+                <i class="bi bi-envelope me-1"></i> {{ teacher.email }} •
+                <i class="bi bi-person me-1"></i> @{{ teacher.username }}
+              </p>
+              <small class="text-muted">Member since {{ teacher.date_joined|date:"F Y" }}</small>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <a href="{% url 'accounts:teacher_dashboard' %}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+            </a>
+            <a href="{% url 'accounts:teacher_change_password' %}" class="btn btn-outline-primary">
+              <i class="bi bi-key me-1"></i> Change Password
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Teaching Stats Column -->
+        <div class="col-md-4">
+          <div class="card card-modern p-4 mb-4">
+            <h6 class="fw-bold mb-3 d-flex align-items-center">
+              <i class="bi bi-graph-up text-primary me-2"></i> Teaching Summary
+            </h6>
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <span class="text-secondary small">Total Classrooms</span>
+              <span class="fw-bold text-dark">{{ total_classes }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <span class="text-secondary small">Total Enrolled Students</span>
+              <span class="fw-bold text-dark">{{ total_students }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <span class="text-secondary small">Account Role</span>
+              <span class="badge badge-role-teacher">{{ teacher.get_role_display }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center py-2">
+              <span class="text-secondary small">Authentication Method</span>
+              <span class="badge bg-light text-dark border">Django Session</span>
+            </div>
+          </div>
+
+          <div class="card card-modern p-4 bg-light border-0">
+            <h6 class="fw-bold mb-2"><i class="bi bi-shield-lock-fill text-primary me-1"></i> Security & Privacy</h6>
+            <p class="small text-secondary mb-3">
+              Passwords are cryptographically hashed using PBKDF2 SHA-256 and are never stored or exposed in plain text.
+            </p>
+            <a href="{% url 'accounts:teacher_change_password' %}" class="btn btn-sm btn-primary-gradient w-100">
+              <i class="bi bi-shield-lock me-1"></i> Update Account Password
+            </a>
+          </div>
+        </div>
+
+        <!-- Profile Editing Form Column -->
+        <div class="col-md-8">
+          <div class="card card-modern p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+              <div>
+                <h5 class="fw-bold mb-1">Edit Instructor Profile</h5>
+                <small class="text-secondary">Keep your contact and academic specialization details up to date.</small>
+              </div>
+            </div>
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger py-2 small" role="alert">
+                {% for error in form.non_field_errors %}
+                  <div>{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" novalidate>
+              {% csrf_token %}
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label for="{{ form.first_name.id_for_label }}" class="form-label small fw-semibold text-secondary">First Name</label>
+                  {{ form.first_name }}
+                  {% if form.first_name.errors %}
+                    <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  <label for="{{ form.last_name.id_for_label }}" class="form-label small fw-semibold text-secondary">Last Name</label>
+                  {{ form.last_name }}
+                  {% if form.last_name.errors %}
+                    <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label for="{{ form.email.id_for_label }}" class="form-label small fw-semibold text-secondary">Academic Email Address *</label>
+                  {{ form.email }}
+                  {% if form.email.errors %}
+                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  <label for="{{ form.phone_number.id_for_label }}" class="form-label small fw-semibold text-secondary">Contact Phone</label>
+                  {{ form.phone_number }}
+                  {% if form.phone_number.errors %}
+                    <div class="text-danger small mt-1">{{ form.phone_number.errors.0 }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label for="{{ form.bio.id_for_label }}" class="form-label small fw-semibold text-secondary">Specialization / Department Bio</label>
+                {{ form.bio }}
+                <div class="form-text small text-muted">Students will see this when viewing your instructor profile.</div>
+                {% if form.bio.errors %}
+                  <div class="text-danger small mt-1">{{ form.bio.errors.0 }}</div>
+                {% endif %}
+              </div>
+
+              <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                <a href="{% url 'accounts:teacher_dashboard' %}" class="btn btn-outline-secondary">
+                  Cancel
+                </a>
+                <button type="submit" class="btn btn-primary-gradient px-4">
+                  <i class="bi bi-check2-circle me-1"></i> Save Profile Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

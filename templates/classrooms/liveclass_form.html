@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Live Class - LiveClass{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <div class="card card-modern border-0 shadow-lg p-4 p-md-5">
+        <div class="mb-4 pb-2 border-bottom">
+          <a href="{% url 'classrooms:live_list' %}" class="text-secondary small text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i> Back to Live Classes
+          </a>
+          <div class="d-flex align-items-center gap-2 mt-2">
+            <h3 class="fw-bold mb-0">Create Live Class Session</h3>
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+              <i class="bi bi-broadcast me-1"></i> New Room
+            </span>
+          </div>
+          <p class="text-secondary small mb-0">A cryptographically secure room code will be generated automatically.</p>
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2 small" role="alert">
+            {% for error in form.non_field_errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <!-- Title -->
+          <div class="mb-3">
+            <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold small text-secondary">Class Title *</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+              <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Subject & Status -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ form.subject.id_for_label }}" class="form-label fw-semibold small text-secondary">Subject / Academic Area *</label>
+              {{ form.subject }}
+              {% if form.subject.errors %}
+                <div class="text-danger small mt-1">{{ form.subject.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.status.id_for_label }}" class="form-label fw-semibold small text-secondary">Initial Status *</label>
+              {{ form.status }}
+              {% if form.status.errors %}
+                <div class="text-danger small mt-1">{{ form.status.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Schedule Date & Time -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ form.scheduled_date.id_for_label }}" class="form-label fw-semibold small text-secondary">Scheduled Date *</label>
+              {{ form.scheduled_date }}
+              {% if form.scheduled_date.errors %}
+                <div class="text-danger small mt-1">{{ form.scheduled_date.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.scheduled_time.id_for_label }}" class="form-label fw-semibold small text-secondary">Scheduled Start Time *</label>
+              {{ form.scheduled_time }}
+              {% if form.scheduled_time.errors %}
+                <div class="text-danger small mt-1">{{ form.scheduled_time.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Duration & Max Students -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ form.duration.id_for_label }}" class="form-label fw-semibold small text-secondary">Duration (Minutes) *</label>
+              {{ form.duration }}
+              {% if form.duration.errors %}
+                <div class="text-danger small mt-1">{{ form.duration.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.max_students.id_for_label }}" class="form-label fw-semibold small text-secondary">Max Student Capacity *</label>
+              {{ form.max_students }}
+              {% if form.max_students.errors %}
+                <div class="text-danger small mt-1">{{ form.max_students.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Access Mode & Security Settings -->
+          <div class="card bg-light border-0 p-3 mb-3 rounded-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="bi bi-shield-check text-primary fs-5"></i>
+              <h6 class="fw-bold mb-0 text-dark">Class Access & Authorization Mode</h6>
+            </div>
+            <div class="mb-3">
+              <label for="{{ form.access_mode.id_for_label }}" class="form-label fw-semibold small text-secondary">Select Access Mode *</label>
+              {{ form.access_mode }}
+              {% if form.access_mode.errors %}
+                <div class="text-danger small mt-1">{{ form.access_mode.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Access Mode Descriptions -->
+            <div class="alert alert-secondary py-2 px-3 small mb-0 border-0" id="access-mode-info">
+              <div class="fw-semibold text-dark mb-1" id="mode-title"><i class="bi bi-link-45deg me-1"></i> Public Link Access</div>
+              <div class="text-muted" id="mode-desc">
+                Any student with the valid class URL may join. Authentication and capacity limits are enforced.
+              </div>
+            </div>
+          </div>
+
+          <!-- Room Password Protection -->
+          <div class="card bg-light border-0 p-3 mb-3 rounded-3" id="password-container">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="bi bi-shield-lock text-primary fs-5"></i>
+              <h6 class="fw-bold mb-0 text-dark">Room Password Protection</h6>
+            </div>
+            <label for="{{ form.room_password.id_for_label }}" class="form-label small text-secondary">
+              Room Password (Never stored in plain text; automatically hashed via PBKDF2):
+            </label>
+            {{ form.room_password }}
+            <div class="form-text small text-muted">{{ form.room_password.help_text }}</div>
+            {% if form.room_password.errors %}
+              <div class="text-danger small mt-1">{{ form.room_password.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Description -->
+          <div class="mb-4">
+            <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold small text-secondary">Agenda & Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+              <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <a href="{% url 'classrooms:live_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger px-4">
+              <i class="bi bi-broadcast me-1"></i> Launch & Save Class
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const modeSelect = document.getElementById('id_access_mode');
+  const modeTitle = document.getElementById('mode-title');
+  const modeDesc = document.getElementById('mode-desc');
+  const pwdContainer = document.getElementById('password-container');
+
+  function updateModeInfo() {
+    if (!modeSelect) return;
+    const val = modeSelect.value;
+    if (val === 'ENROLLMENT_ONLY') {
+      modeTitle.innerHTML = '<i class="bi bi-people-fill me-1 text-primary"></i> Enrollment Only Access';
+      modeDesc.innerText = 'Only students explicitly enrolled or invited by the instructor can enter this class. Unenrolled students may submit an Access Request.';
+      pwdContainer.style.display = 'none';
+    } else if (val === 'PASSWORD_PROTECTED') {
+      modeTitle.innerHTML = '<i class="bi bi-shield-lock-fill me-1 text-warning"></i> Password Protected Access';
+      modeDesc.innerText = 'Students must provide the valid class password to join the session. Passwords are cryptographically hashed and never stored in plain text.';
+      pwdContainer.style.display = 'block';
+    } else {
+      modeTitle.innerHTML = '<i class="bi bi-link-45deg me-1 text-success"></i> Public Link Access';
+      modeDesc.innerText = 'Anyone with the valid class room URL may proceed to join. Student authentication, active status, and capacity limits still apply.';
+      pwdContainer.style.display = 'block';
+    }
+  }
+
+  if (modeSelect) {
+    modeSelect.addEventListener('change', updateModeInfo);
+    updateModeInfo();
+  }
+});
+</script>
+{% endblock %}

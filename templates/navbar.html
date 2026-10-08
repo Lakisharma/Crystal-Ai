@@ -1,0 +1,207 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="{% url 'core:home' %}">
+      <span class="p-1 me-2 rounded-3 bg-primary bg-opacity-25 border border-primary border-opacity-50 text-white">
+        <i class="bi bi-mortarboard-fill brand-gradient fs-4"></i>
+      </span>
+      <span class="brand-gradient fw-bold">TeachLive</span>
+    </a>
+
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'core:home' %}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'core:about' %}">About</a>
+        </li>
+
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% if user.is_student %}{% url 'student:dashboard' %}{% else %}{% url 'core:dashboard' %}{% endif %}">
+              <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'classrooms:list' %}">
+              <i class="bi bi-easel2 me-1"></i> Classrooms
+            </a>
+          </li>
+
+          {% if user.is_teacher %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'classrooms:teacher_students' %}">
+                <i class="bi bi-people me-1"></i> My Students
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'classrooms:create' %}">
+                <i class="bi bi-plus-circle me-1"></i> New Class
+              </a>
+            </li>
+          {% elif user.is_student %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'student:classes' %}">
+                <i class="bi bi-journal-bookmark me-1"></i> My Classes
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'attendance:student_report' %}">
+                <i class="bi bi-calendar-check me-1"></i> My Attendance
+              </a>
+            </li>
+          {% endif %}
+
+          {% if user.is_admin_role %}
+            <li class="nav-item">
+              <a class="nav-link text-warning" href="{% url 'admin:index' %}">
+                <i class="bi bi-shield-lock me-1"></i> Django Admin
+              </a>
+            </li>
+          {% endif %}
+        {% endif %}
+      </ul>
+
+      <ul class="navbar-nav ms-auto align-items-lg-center">
+        {% if user.is_authenticated %}
+          <!-- Notification Bell -->
+          <li class="nav-item me-lg-2">
+            <a class="nav-link position-relative text-white px-2 d-flex align-items-center" href="{% url 'notifications:list' %}" title="Notifications">
+              <i class="bi bi-bell fs-5"></i>
+              {% if unread_notifications_count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-2 border-dark" style="font-size: 0.65rem;">
+                  {{ unread_notifications_count }}
+                  <span class="visually-hidden">unread notifications</span>
+                </span>
+              {% endif %}
+            </a>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userMenuDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {% if user.avatar_url %}
+                <img src="{{ user.avatar_url }}" alt="{{ user.username }}" class="rounded-circle me-2 border border-2 border-primary" style="width: 32px; height: 32px; object-fit: cover;">
+              {% else %}
+                <div class="avatar-circle me-2" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                  {{ user.username|make_list|first|upper }}
+                </div>
+              {% endif %}
+              <span class="me-2 text-white">{{ user.first_name|default:user.username }}</span>
+              <span class="badge {% if user.is_teacher %}badge-role-teacher{% elif user.is_student %}badge-role-student{% else %}badge-role-admin{% endif %}">
+                {{ user.get_role_display }}
+              </span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userMenuDropdown">
+              <li>
+                <h6 class="dropdown-header">Signed in as <strong>{{ user.username }}</strong></h6>
+              </li>
+              <li>
+                <a class="dropdown-item d-flex align-items-center justify-content-between" href="{% url 'notifications:list' %}">
+                  <span><i class="bi bi-bell me-2 text-primary"></i> Notifications</span>
+                  {% if unread_notifications_count > 0 %}
+                    <span class="badge bg-danger rounded-pill">{{ unread_notifications_count }}</span>
+                  {% endif %}
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              {% if user.is_teacher or user.is_admin_role %}
+                <li>
+                  <a class="dropdown-item" href="{% url 'accounts:teacher_dashboard' %}">
+                    <i class="bi bi-speedometer2 me-2 text-primary"></i> Teacher Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'classrooms:teacher_students' %}">
+                    <i class="bi bi-people me-2 text-primary"></i> My Students
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item text-danger fw-semibold" href="{% url 'classrooms:create' %}?live=1">
+                    <i class="bi bi-broadcast me-2"></i> Create Live Class
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'accounts:teacher_profile' %}">
+                    <i class="bi bi-person-gear me-2"></i> Instructor Profile
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'accounts:teacher_change_password' %}">
+                    <i class="bi bi-key me-2"></i> Change Password
+                  </a>
+                </li>
+              {% else %}
+                <li>
+                  <a class="dropdown-item" href="{% url 'student:dashboard' %}">
+                    <i class="bi bi-speedometer2 me-2 text-info"></i> Student Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                    <i class="bi bi-person me-2"></i> My Profile
+                  </a>
+                </li>
+              {% endif %}
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item text-danger" href="{% if user.is_student %}{% url 'student:logout' %}{% else %}{% url 'accounts:logout' %}{% endif %}">
+                  <i class="bi bi-box-arrow-right me-2"></i> Sign Out
+                </a>
+              </li>
+            </ul>
+          </li>
+        {% else %}
+          <!-- Teacher Portal Dropdown -->
+          <li class="nav-item dropdown me-2">
+            <a class="nav-link dropdown-toggle text-light" href="#" id="teacherMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-person-workspace me-1"></i> Teachers
+            </a>
+            <ul class="dropdown-menu shadow border-0" aria-labelledby="teacherMenu">
+              <li>
+                <a class="dropdown-item" href="{% url 'accounts:teacher_login' %}">
+                  <i class="bi bi-box-arrow-in-right me-2 text-primary"></i> Teacher Login
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{% url 'accounts:teacher_register' %}">
+                  <i class="bi bi-person-plus me-2 text-success"></i> Register as Teacher
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Student Portal Dropdown -->
+          <li class="nav-item dropdown me-3">
+            <a class="nav-link dropdown-toggle text-light" href="#" id="studentMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-backpack me-1"></i> Students
+            </a>
+            <ul class="dropdown-menu shadow border-0" aria-labelledby="studentMenu">
+              <li>
+                <a class="dropdown-item" href="{% url 'student:login' %}">
+                  <i class="bi bi-google me-2 text-primary"></i> Student Login (Google)
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{% url 'accounts:student_register' %}">
+                  <i class="bi bi-person-plus me-2 text-info"></i> Create Student Account
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Universal Sign In -->
+          <li class="nav-item">
+            <a class="btn btn-outline-light btn-sm px-3 rounded-pill" href="{% url 'accounts:login' %}">
+              Sign In
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>

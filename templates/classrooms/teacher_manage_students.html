@@ -1,0 +1,520 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Students: {{ live_class.title }} - TeachLive{% endblock %}
+
+{% block extra_css %}
+<style>
+  .nav-pills-custom .nav-link {
+    color: #475569;
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 0.5rem 1.25rem;
+    transition: all 0.2s ease;
+  }
+  .nav-pills-custom .nav-link.active {
+    background-color: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  }
+  .invite-box {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px dashed #cbd5e1;
+    border-radius: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:teacher_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'classrooms:live_detail' live_class.pk %}" class="text-decoration-none">{{ live_class.title }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Manage Students</li>
+    </ol>
+  </nav>
+
+  <!-- Header Card -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1 font-monospace">
+            {{ live_class.room_code }}
+          </span>
+          {% if live_class.access_mode == 'PUBLIC_LINK' %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+              <i class="bi bi-link-45deg me-1"></i> Public Link
+            </span>
+          {% elif live_class.access_mode == 'ENROLLMENT_ONLY' %}
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+              <i class="bi bi-people-fill me-1"></i> Enrollment Only
+            </span>
+          {% elif live_class.access_mode == 'PASSWORD_PROTECTED' %}
+            <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">
+              <i class="bi bi-shield-lock-fill me-1"></i> Password Protected
+            </span>
+          {% endif %}
+          <span class="badge {% if live_class.is_live %}bg-danger{% else %}bg-secondary{% endif %} px-2 py-1">
+            {{ live_class.get_status_display }}
+          </span>
+        </div>
+        <h3 class="fw-bold text-dark mb-1">{{ live_class.title }}</h3>
+        <p class="text-muted small mb-0">
+          Subject: <strong>{{ live_class.subject }}</strong> &bull; Schedule: <strong>{{ live_class.scheduled_date|date:"F d, Y" }} at {{ live_class.scheduled_time|time:"g:i A" }}</strong> &bull; Seats: <strong>{{ total_enrolled }} / {% if live_class.max_students > 0 %}{{ live_class.max_students }}{% else %}Unlimited{% endif %}</strong>
+        </p>
+      </div>
+
+      <div class="d-flex gap-2">
+        <a href="{% url 'classrooms:live_detail' live_class.pk %}" class="btn btn-outline-secondary rounded-pill px-3 fw-semibold">
+          <i class="bi bi-eye me-1"></i> View Class
+        </a>
+        {% if live_class.is_live %}
+          <a href="{% url 'classrooms:teacher_class_live' live_class.pk %}" class="btn btn-danger rounded-pill px-4 fw-semibold shadow-sm">
+            <i class="bi bi-camera-video-fill me-1"></i> Conduct Live
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric Summary Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-primary">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Active Students</div>
+        <h3 class="fw-bold text-primary mb-0">{{ total_enrolled }}</h3>
+        <span class="text-muted small">Confirmed access</span>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-info">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Pending Invitations</div>
+        <h3 class="fw-bold text-info mb-0">{{ total_invited }}</h3>
+        <span class="text-muted small">Awaiting accept</span>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-warning">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Access Requests</div>
+        <h3 class="fw-bold text-warning mb-0">{{ total_pending_requests }}</h3>
+        <span class="text-muted small">Pending review</span>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-success">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Capacity & Seats</div>
+        <h3 class="fw-bold text-success mb-0">
+          {% if live_class.max_students > 0 %}
+            {{ available_seats }} left
+          {% else %}
+            Unlimited
+          {% endif %}
+        </h3>
+        <span class="text-muted small">Total: {{ total_enrolled }} / {{ live_class.max_students|default:"&infin;" }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Secure Class Invite Link Card -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-shield-check text-primary fs-5"></i>
+        <h5 class="fw-bold mb-0 text-dark">Reusable Class Invite Link</h5>
+      </div>
+      <div class="d-flex gap-2">
+        <form method="post" action="{% url 'classrooms:teacher_generate_invite_link' live_class.room_code %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+            <i class="bi bi-arrow-clockwise me-1"></i> {% if invite_token %}Regenerate Link{% else %}Generate Link{% endif %}
+          </button>
+        </form>
+        {% if invite_token and invite_token.is_active %}
+          <form method="post" action="{% url 'classrooms:teacher_revoke_invite_link' live_class.room_code %}" onsubmit="return confirm('Revoke this invite link? New students will not be able to use it.');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+              <i class="bi bi-x-circle me-1"></i> Revoke Link
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if invite_token and invite_token.is_valid %}
+      <div class="invite-box p-3 mb-2">
+        <label class="small text-muted fw-semibold mb-1">Share this secure link with students:</label>
+        <div class="input-group">
+          <input type="text" id="classInviteUrlInput" class="form-control font-monospace bg-white border" value="{{ invite_url }}" readonly>
+          <button class="btn btn-primary px-4 fw-semibold" type="button" id="copyInviteLinkBtn" onclick="copyInviteLink()">
+            <i class="bi bi-clipboard me-1"></i> <span id="copyInviteLinkText">Copy Link</span>
+          </button>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-3 text-muted small mt-2">
+        <span><i class="bi bi-key me-1"></i> Token: <code class="text-secondary">{{ invite_token.token|slice:":12" }}...</code></span>
+        <span><i class="bi bi-bar-chart me-1"></i> Uses: <strong>{{ invite_token.times_used }}</strong>{% if invite_token.max_uses %} / {{ invite_token.max_uses }}{% endif %}</span>
+        <span><i class="bi bi-clock me-1"></i> Expires: <strong>{{ invite_token.expires_at|date:"M d, Y H:i"|default:"Never" }}</strong></span>
+        <span class="text-success"><i class="bi bi-check-circle me-1"></i> Active</span>
+      </div>
+    {% elif invite_token and not invite_token.is_valid %}
+      <div class="alert alert-warning mb-0 rounded-3">
+        <i class="bi bi-exclamation-triangle me-1"></i> The active invite link for this class has been revoked or expired. Click <strong>Regenerate Link</strong> to create a fresh secure link.
+      </div>
+    {% else %}
+      <div class="text-muted small">
+        No active invite link generated yet. Click <strong>Generate Link</strong> to create a secure, shareable registration link for this class.
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Add / Invite Student Card -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <i class="bi bi-person-plus text-primary fs-5"></i>
+      <h5 class="fw-bold mb-0 text-dark">Add or Invite Student</h5>
+    </div>
+    <form method="post" action="{% url 'classrooms:teacher_add_student' live_class.room_code %}" class="row g-3 align-items-center">
+      {% csrf_token %}
+      <div class="col-md-7">
+        <label for="student_query" class="visually-hidden">Student Email or Username</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" name="student_query" id="student_query" class="form-control bg-light border-0" placeholder="Enter student email address or username..." required>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <select name="action_type" class="form-select bg-light border-0">
+          <option value="ENROLL">Directly Enroll</option>
+          <option value="INVITE">Send Invitation</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary rounded-pill w-100 fw-semibold">
+          <i class="bi bi-plus-lg me-1"></i> Add Student
+        </button>
+      </div>
+    </form>
+    <div class="form-text text-muted small mt-2">
+      <i class="bi bi-info-circle me-1"></i> Students must be registered on TeachLive. If capacity is set, enrollment will automatically respect available seats.
+    </div>
+  </div>
+
+  <!-- 4 Distinct Navigation Tabs -->
+  <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
+    <div class="card-header bg-white border-bottom p-3 px-4">
+      <ul class="nav nav-pills nav-pills-custom gap-2" id="studentManagementTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="active-tab" data-bs-toggle="pill" data-bs-target="#active-tab-pane" type="button" role="tab">
+            <i class="bi bi-people me-1"></i> Active Students ({{ total_enrolled }})
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="invitations-tab" data-bs-toggle="pill" data-bs-target="#invitations-tab-pane" type="button" role="tab">
+            <i class="bi bi-envelope-paper me-1"></i> Pending Invitations ({{ total_invited }})
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link position-relative" id="requests-tab" data-bs-toggle="pill" data-bs-target="#requests-tab-pane" type="button" role="tab">
+            <i class="bi bi-clock-history me-1"></i> Pending Requests
+            {% if total_pending_requests > 0 %}
+              <span class="badge rounded-pill bg-warning text-dark ms-1">{{ total_pending_requests }}</span>
+            {% else %}
+              <span class="badge rounded-pill bg-light text-muted ms-1">0</span>
+            {% endif %}
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="removed-tab" data-bs-toggle="pill" data-bs-target="#removed-tab-pane" type="button" role="tab">
+            <i class="bi bi-slash-circle me-1"></i> Removed / Revoked ({{ total_revoked }})
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="tab-content" id="studentManagementTabsContent">
+      <!-- 1. ACTIVE STUDENTS TAB -->
+      <div class="tab-pane fade show active" id="active-tab-pane" role="tabpanel">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Student</th>
+                <th>Email</th>
+                <th>Enrolled At</th>
+                <th>Attendance</th>
+                <th class="text-end pe-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in active_enrollments %}
+                <tr>
+                  <td class="ps-4">
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-person-circle fs-5 text-primary"></i>
+                      <div>
+                        <a href="{% url 'classrooms:teacher_student_detail' item.student.id %}" class="fw-bold text-dark text-decoration-none">
+                          {{ item.student.get_full_name|default:item.student.username }}
+                        </a>
+                        <span class="text-muted small d-block">@{{ item.student.username }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-secondary small">{{ item.student.email|default:"-" }}</td>
+                  <td class="small text-muted">{{ item.enrolled_at|default:item.created_at|date:"M d, Y" }}</td>
+                  <td>
+                    {% if item.attendance_record %}
+                      {% if item.attendance_record.status == 'PRESENT' %}
+                        <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle me-1"></i>Present</span>
+                      {% elif item.attendance_record.status == 'LEFT' %}
+                        <span class="badge bg-secondary-subtle text-secondary">Left ({{ item.attendance_record.total_duration }}m)</span>
+                      {% else %}
+                        <span class="badge bg-warning-subtle text-warning">{{ item.attendance_record.get_status_display }}</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="text-muted small">Not joined</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end pe-4">
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#revokeModal{{ item.pk }}">
+                      <i class="bi bi-person-x me-1"></i> Revoke Access
+                    </button>
+
+                    <!-- Revoke Modal -->
+                    <div class="modal fade" id="revokeModal{{ item.pk }}" tabindex="-1" aria-labelledby="revokeModalLabel{{ item.pk }}" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered text-start">
+                        <div class="modal-content rounded-4 border-0 shadow">
+                          <form method="post" action="{% url 'classrooms:teacher_revoke_student' live_class.room_code item.pk %}">
+                            {% csrf_token %}
+                            <div class="modal-header border-bottom-0 pb-0">
+                              <h5 class="modal-title fw-bold text-danger" id="revokeModalLabel{{ item.pk }}">
+                                <i class="bi bi-exclamation-triangle me-1"></i> Revoke Student Access
+                              </h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body py-3">
+                              <p class="mb-3">
+                                Are you sure you want to revoke access for <strong>{{ item.student.get_full_name|default:item.student.username }}</strong>?
+                              </p>
+                              <div class="alert alert-warning small mb-3">
+                                <i class="bi bi-info-circle me-1"></i> If the student is currently inside the live room, they will be disconnected immediately and prevented from reconnecting.
+                              </div>
+                              <div class="mb-3">
+                                <label for="reasonInput{{ item.pk }}" class="form-label small fw-semibold">Reason for Revocation (Optional)</label>
+                                <input type="text" name="reason" id="reasonInput{{ item.pk }}" class="form-control" placeholder="e.g. Conduct issue, Withdrawn, Schedule conflict...">
+                              </div>
+                            </div>
+                            <div class="modal-footer border-top-0 pt-0">
+                              <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                              <button type="submit" class="btn btn-danger rounded-pill px-4">Confirm Revoke</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-5 text-muted">
+                    <i class="bi bi-people display-6 text-secondary opacity-50 d-block mb-2"></i>
+                    <p class="mb-0">No active students enrolled in this class yet.</p>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2. PENDING INVITATIONS TAB -->
+      <div class="tab-pane fade" id="invitations-tab-pane" role="tabpanel">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Student</th>
+                <th>Email</th>
+                <th>Invited Date</th>
+                <th>Status</th>
+                <th class="text-end pe-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in pending_invitations %}
+                <tr>
+                  <td class="ps-4">
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-envelope-paper text-info fs-5"></i>
+                      <div>
+                        <a href="{% url 'classrooms:teacher_student_detail' item.student.id %}" class="fw-bold text-dark text-decoration-none">
+                          {{ item.student.get_full_name|default:item.student.username }}
+                        </a>
+                        <span class="text-muted small d-block">@{{ item.student.username }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-secondary small">{{ item.student.email|default:"-" }}</td>
+                  <td class="small text-muted">{{ item.invited_at|default:item.created_at|date:"M d, Y H:i" }}</td>
+                  <td>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">Awaiting Acceptance</span>
+                  </td>
+                  <td class="text-end pe-4">
+                    <form method="post" action="{% url 'classrooms:teacher_revoke_student' live_class.room_code item.pk %}" class="d-inline" onsubmit="return confirm('Cancel invitation for {{ item.student.username }}?');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                        <i class="bi bi-x-circle me-1"></i> Cancel Invite
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-5 text-muted">
+                    <i class="bi bi-envelope-check display-6 text-secondary opacity-50 d-block mb-2"></i>
+                    <p class="mb-0">No pending student invitations for this class.</p>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. PENDING ACCESS REQUESTS TAB -->
+      <div class="tab-pane fade" id="requests-tab-pane" role="tabpanel">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Student</th>
+                <th>Email</th>
+                <th>Requested Note</th>
+                <th>Date Requested</th>
+                <th class="text-end pe-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in access_requests %}
+                <tr>
+                  <td class="ps-4">
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-person-raised-hand text-warning fs-5"></i>
+                      <div>
+                        <a href="{% url 'classrooms:teacher_student_detail' req.student.id %}" class="fw-bold text-dark text-decoration-none">
+                          {{ req.student.get_full_name|default:req.student.username }}
+                        </a>
+                        <span class="text-muted small d-block">@{{ req.student.username }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-secondary small">{{ req.student.email|default:"-" }}</td>
+                  <td class="small text-muted">{{ req.request_note|default:"No note provided" }}</td>
+                  <td class="small text-muted">{{ req.created_at|date:"M d, Y H:i" }}</td>
+                  <td class="text-end pe-4">
+                    <div class="d-inline-flex gap-2">
+                      <form method="post" action="{% url 'classrooms:teacher_approve_access_request' live_class.room_code req.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
+                          <i class="bi bi-check-lg me-1"></i> Approve
+                        </button>
+                      </form>
+                      <form method="post" action="{% url 'classrooms:teacher_reject_access_request' live_class.room_code req.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                          <i class="bi bi-x-lg me-1"></i> Reject
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-5 text-muted">
+                    <i class="bi bi-check-all display-6 text-secondary opacity-50 d-block mb-2"></i>
+                    <p class="mb-0">No pending access requests at this time.</p>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 4. REMOVED / REVOKED STUDENTS TAB -->
+      <div class="tab-pane fade" id="removed-tab-pane" role="tabpanel">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Student</th>
+                <th>Email</th>
+                <th>Removed Date</th>
+                <th>Revocation Reason</th>
+                <th class="text-end pe-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in removed_enrollments %}
+                <tr>
+                  <td class="ps-4">
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-person-x text-danger fs-5"></i>
+                      <div>
+                        <a href="{% url 'classrooms:teacher_student_detail' item.student.id %}" class="fw-bold text-dark text-decoration-none">
+                          {{ item.student.get_full_name|default:item.student.username }}
+                        </a>
+                        <span class="text-muted small d-block">@{{ item.student.username }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-secondary small">{{ item.student.email|default:"-" }}</td>
+                  <td class="small text-muted">{{ item.revoked_at|default:item.updated_at|date:"M d, Y H:i" }}</td>
+                  <td class="small text-danger">{{ item.revocation_reason|default:"No reason recorded" }}</td>
+                  <td class="text-end pe-4">
+                    <form method="post" action="{% url 'classrooms:teacher_restore_student' live_class.room_code item.pk %}" class="d-inline">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3" title="Restore student access">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Re-Invite / Restore
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-5 text-muted">
+                    <p class="mb-0">No removed or revoked students recorded for this class.</p>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Copy Link Script -->
+<script>
+  function copyInviteLink() {
+    var copyText = document.getElementById("classInviteUrlInput");
+    if (copyText) {
+      copyText.select();
+      copyText.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(copyText.value).then(function() {
+        var btnText = document.getElementById("copyInviteLinkText");
+        var original = btnText.innerText;
+        btnText.innerText = "Copied!";
+        setTimeout(function() {
+          btnText.innerText = original;
+        }, 2000);
+      });
+    }
+  }
+</script>
+{% endblock %}

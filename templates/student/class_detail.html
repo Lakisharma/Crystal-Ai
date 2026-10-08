@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ live_class.title }} - TeachLive Student{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'student:dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'student:classes' %}" class="text-decoration-none">My Classes</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ live_class.title }}</li>
+    </ol>
+  </nav>
+
+  <!-- Class Main Banner Card -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="row align-items-center g-3">
+      <div class="col-lg-8">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+          <span class="badge bg-primary-subtle text-primary fw-semibold px-2 py-1">{{ live_class.subject }}</span>
+          <span class="badge bg-light text-dark font-monospace border px-2 py-1">{{ live_class.room_code }}</span>
+
+          {% if live_class.status == 'LIVE' %}
+            <span class="badge bg-danger d-inline-flex align-items-center gap-1 px-2 py-1 shadow-sm">
+              <span class="spinner-grow spinner-grow-sm" style="width: 0.4rem; height: 0.4rem;"></span>
+              LIVE NOW
+            </span>
+          {% elif live_class.status == 'SCHEDULED' %}
+            <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+              <i class="bi bi-clock me-1"></i> Scheduled
+            </span>
+          {% elif live_class.status == 'COMPLETED' or live_class.is_ended %}
+            <span class="badge bg-secondary-subtle text-secondary px-2 py-1">
+              <i class="bi bi-check2 me-1"></i> Completed
+            </span>
+          {% else %}
+            <span class="badge bg-danger-subtle text-danger px-2 py-1">
+              <i class="bi bi-x-circle me-1"></i> Cancelled
+            </span>
+          {% endif %}
+
+          <!-- Section C: Access Status Badge -->
+          {% if enrollment %}
+            {% if enrollment.status == 'ENROLLED' %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                <i class="bi bi-check-circle me-1"></i> Enrolled
+              </span>
+            {% elif enrollment.status == 'INVITED' %}
+              <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+                <i class="bi bi-envelope-paper me-1"></i> Invited
+              </span>
+            {% elif enrollment.status == 'REVOKED' %}
+              <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                <i class="bi bi-slash-circle me-1"></i> Access Revoked
+              </span>
+            {% endif %}
+          {% elif access_request and access_request.status == 'PENDING' %}
+            <span class="badge bg-warning text-dark px-2 py-1">
+              <i class="bi bi-clock me-1"></i> Request Pending
+            </span>
+          {% elif live_class.access_mode == 'PUBLIC_LINK' %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+              <i class="bi bi-unlock me-1"></i> Open to All
+            </span>
+          {% endif %}
+        </div>
+
+        <!-- Section A: Title & Description -->
+        <h2 class="fw-bold text-dark mb-2">{{ live_class.title }}</h2>
+        <p class="text-secondary small mb-3">
+          {{ live_class.description|default:"No description provided for this live session." }}
+        </p>
+
+        <!-- Section A & B: Schedule, Duration, Instructor -->
+        <div class="d-flex flex-wrap gap-4 align-items-center text-secondary small">
+          <div>
+            <i class="bi bi-calendar3 text-primary me-1"></i>
+            Date: <strong>{{ live_class.scheduled_date|date:"F d, Y" }} at {{ live_class.scheduled_time|time:"g:i A" }}</strong>
+          </div>
+          <div>
+            <i class="bi bi-hourglass-split text-info me-1"></i>
+            Duration: <strong>{{ live_class.duration }} mins</strong>
+          </div>
+          <div>
+            <i class="bi bi-person-workspace text-success me-1"></i>
+            Instructor: <strong>Prof. {{ live_class.teacher.get_full_name|default:live_class.teacher.username }}</strong>
+          </div>
+        </div>
+
+        {% if enrollment and enrollment.status == 'REVOKED' and enrollment.revocation_reason %}
+          <div class="alert alert-danger small mt-3 mb-0 rounded-3">
+            <i class="bi bi-exclamation-octagon me-1"></i> <strong>Revocation Reason:</strong> {{ enrollment.revocation_reason }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Action Buttons & Server-Enforced Join -->
+      <div class="col-lg-4 text-lg-end">
+        <div class="d-flex flex-column gap-2 align-items-lg-end">
+          {% if can_join %}
+            <a href="{% url 'live_room:detail' room_code=live_class.room_code %}" class="btn btn-danger btn-lg rounded-pill px-4 fw-bold shadow-sm w-100 w-lg-auto">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Enter Live Classroom
+            </a>
+          {% elif live_class.status == 'LIVE' %}
+            <button class="btn btn-secondary btn-lg rounded-pill px-4 fw-bold w-100 w-lg-auto" disabled>
+              <i class="bi bi-lock me-1"></i> Class in Progress (Access Restricted)
+            </button>
+          {% elif live_class.status == 'SCHEDULED' %}
+            <div class="text-muted small mb-1">Class scheduled to begin at {{ live_class.scheduled_time|time:"g:i A" }}</div>
+            {% if enrollment and enrollment.status == 'ENROLLED' %}
+              <span class="badge bg-light text-success border border-success-subtle p-2">
+                <i class="bi bi-check-circle me-1"></i> You are enrolled & ready
+              </span>
+            {% endif %}
+          {% endif %}
+
+          <!-- Invitation actions -->
+          {% if enrollment and enrollment.status == 'INVITED' %}
+            <div class="d-flex gap-2 w-100 justify-content-lg-end mt-2">
+              <form method="post" action="{% url 'student:class_accept' live_class.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success rounded-pill px-3 fw-semibold">
+                  <i class="bi bi-check-lg me-1"></i> Accept Invitation
+                </button>
+              </form>
+              <form method="post" action="{% url 'student:class_decline' live_class.id %}" onsubmit="return confirm('Decline this class invitation?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger rounded-pill px-3 fw-semibold">
+                  <i class="bi bi-x-lg me-1"></i> Decline
+                </button>
+              </form>
+            </div>
+          {% endif %}
+
+          <!-- Request access if enrollment-only and no enrollment -->
+          {% if not enrollment and live_class.access_mode == 'ENROLLMENT_ONLY' %}
+            {% if access_request and access_request.status == 'PENDING' %}
+              <div class="badge bg-warning-subtle text-dark border border-warning-subtle p-2">
+                <i class="bi bi-clock-history me-1"></i> Access Request Under Review
+              </div>
+            {% else %}
+              <form method="post" action="{% url 'live_room:access_request' room_code=live_class.room_code %}">
+                {% csrf_token %}
+                <input type="hidden" name="request_note" value="Requested from student class detail page">
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+                  <i class="bi bi-send me-1"></i> Request Access to Join
+                </button>
+              </form>
+            {% endif %}
+          {% endif %}
+
+          <!-- Leave class button (if enrolled) -->
+          {% if enrollment and enrollment.status == 'ENROLLED' %}
+            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 mt-2" data-bs-toggle="modal" data-bs-target="#leaveClassModal">
+              <i class="bi bi-box-arrow-left me-1"></i> Leave Class
+            </button>
+
+            <!-- Leave Class Modal -->
+            <div class="modal fade" id="leaveClassModal" tabindex="-1" aria-labelledby="leaveClassModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered text-start">
+                <div class="modal-content rounded-4 border-0 shadow">
+                  <form method="post" action="{% url 'student:class_leave' live_class.id %}">
+                    {% csrf_token %}
+                    <div class="modal-header border-bottom-0 pb-0">
+                      <h5 class="modal-title fw-bold text-danger" id="leaveClassModalLabel">
+                        <i class="bi bi-exclamation-circle me-1"></i> Leave Class
+                      </h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body py-3">
+                      <p class="mb-3">
+                        Are you sure you want to withdraw from <strong>{{ live_class.title }}</strong>?
+                      </p>
+                      <div class="mb-3">
+                        <label for="leaveReasonInput" class="form-label small fw-semibold">Optional reason for leaving</label>
+                        <input type="text" name="reason" id="leaveReasonInput" class="form-control" placeholder="e.g. Schedule conflict, Completed course...">
+                      </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0">
+                      <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-danger rounded-pill px-4">Leave Class</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- Section D: Student's Attendance Record for this Class -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-calendar-check text-primary me-2"></i> Your Attendance in this Class
+          </h5>
+          <span class="badge bg-light text-dark border">
+            {{ total_sessions_attended }} session{{ total_sessions_attended|pluralize }} attended
+          </span>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-4">
+            <div class="p-3 bg-light rounded-3 text-center">
+              <span class="text-muted small d-block">Attended Sessions</span>
+              <strong class="fs-4 text-primary">{{ total_sessions_attended }}</strong>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 bg-light rounded-3 text-center">
+              <span class="text-muted small d-block">Total Time</span>
+              <strong class="fs-4 text-success">{{ total_minutes_attended }}m</strong>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 bg-light rounded-3 text-center">
+              <span class="text-muted small d-block">Last Attended</span>
+              <strong class="small text-dark d-block text-truncate mt-1">
+                {{ last_attended_date|date:"M d, Y"|default:"Never" }}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <h6 class="fw-semibold text-secondary small text-uppercase mb-2">Session Logs</h6>
+        {% if attendances %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light small">
+                <tr>
+                  <th>Joined At</th>
+                  <th>Left At</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for att in attendances %}
+                  <tr>
+                    <td class="small">{{ att.joined_at|date:"M d, Y H:i" }}</td>
+                    <td class="small text-muted">{{ att.left_at|date:"M d, Y H:i"|default:"Active / Not Recorded" }}</td>
+                    <td class="small fw-semibold">{{ att.total_duration }} mins</td>
+                    <td>
+                      {% if att.status == 'PRESENT' %}
+                        <span class="badge bg-success-subtle text-success">Present</span>
+                      {% elif att.status == 'LEFT' %}
+                        <span class="badge bg-secondary-subtle text-secondary">Left</span>
+                      {% else %}
+                        <span class="badge bg-warning-subtle text-warning">{{ att.get_status_display }}</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-4">
+            <i class="bi bi-clock-history fs-2 text-secondary opacity-50 d-block mb-1"></i>
+            <p class="small mb-0">No attendance records logged for this session yet.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Section B: Teacher & Class Info Sidebar -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100">
+        <h5 class="fw-bold mb-3 text-dark">
+          <i class="bi bi-person-badge text-primary me-2"></i> Instructor Info
+        </h5>
+        <div class="d-flex align-items-center gap-3 mb-3 p-3 bg-light rounded-3">
+          <div class="avatar-circle bg-primary text-white fs-5 fw-bold" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+            {{ live_class.teacher.username|make_list|first|upper }}
+          </div>
+          <div>
+            <h6 class="fw-bold text-dark mb-0">{{ live_class.teacher.get_full_name|default:live_class.teacher.username }}</h6>
+            <span class="text-muted small d-block">{{ live_class.teacher.email|default:"No email registered" }}</span>
+          </div>
+        </div>
+
+        <h6 class="fw-semibold text-secondary small text-uppercase mb-2">Class Access Rules</h6>
+        <ul class="list-unstyled small text-secondary mb-0">
+          <li class="mb-2">
+            <i class="bi bi-shield-check text-primary me-2"></i>
+            Access Mode: <strong>{{ live_class.get_access_mode_display }}</strong>
+          </li>
+          <li class="mb-2">
+            <i class="bi bi-people text-info me-2"></i>
+            Max Capacity: <strong>{% if live_class.max_students > 0 %}{{ live_class.max_students }} seats{% else %}Unlimited{% endif %}</strong>
+          </li>
+          <li class="mb-2">
+            <i class="bi bi-broadcast text-danger me-2"></i>
+            Platform: <strong>TeachLive LiveKit Classroom</strong>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

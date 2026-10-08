@@ -1,0 +1,186 @@
+{% extends 'admin_dashboard/base_admin.html' %}
+
+{% block title %}Summary Reports & Analytics - TeachLive Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Summary Reports & Analytics</h3>
+    <p class="text-muted mb-0 small">Aggregated metrics, leaderboards, and teaching effectiveness reports.</p>
+  </div>
+</div>
+
+<!-- Platform KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold">Total Attendance Sessions</span>
+        <div class="stat-icon-box bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-people-fill"></i>
+        </div>
+      </div>
+      <div class="fs-3 fw-bold text-dark">{{ total_attendance_count }}</div>
+      <small class="text-muted" style="font-size: 0.72rem;">Student sessions logged</small>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold">Platform Attendance Rate</span>
+        <div class="stat-icon-box bg-success bg-opacity-10 text-success">
+          <i class="bi bi-pie-chart-fill"></i>
+        </div>
+      </div>
+      <div class="fs-3 fw-bold text-success">{{ attendance_rate }}%</div>
+      <small class="text-muted" style="font-size: 0.72rem;">Completed participation</small>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold">Average Attendance Duration</span>
+        <div class="stat-icon-box bg-info bg-opacity-10 text-info">
+          <i class="bi bi-clock-history"></i>
+        </div>
+      </div>
+      <div class="fs-3 fw-bold text-dark">{{ avg_duration_minutes }} min</div>
+      <small class="text-muted" style="font-size: 0.72rem;">Mean student learning time</small>
+    </div>
+  </div>
+</div>
+
+<!-- Analytics Leaderboards -->
+<div class="row g-4 mb-4">
+  <!-- Top Teachers by Classes -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-3 h-100">
+      <div class="card-header bg-white border-bottom border-light py-3">
+        <div class="fw-bold fs-6">
+          <i class="bi bi-award-fill text-warning me-1"></i> Top Teachers by Classes Conducted
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small text-muted">
+            <tr>
+              <th>Teacher</th>
+              <th>Email</th>
+              <th class="text-end">Classes Conducted</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for teacher in top_teachers %}
+              <tr>
+                <td>
+                  <div class="fw-semibold text-dark">{{ teacher.get_full_name|default:teacher.username }}</div>
+                  <small class="text-muted">@{{ teacher.username }}</small>
+                </td>
+                <td class="small">{{ teacher.email }}</td>
+                <td class="text-end">
+                  <span class="badge bg-primary px-2.5 py-1.5 fs-7">{{ teacher.classes_count }}</span>
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="text-center py-4 text-muted small">No class records available.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Most Active Students -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-3 h-100">
+      <div class="card-header bg-white border-bottom border-light py-3">
+        <div class="fw-bold fs-6">
+          <i class="bi bi-trophy-fill text-primary me-1"></i> Most Active Students
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small text-muted">
+            <tr>
+              <th>Student</th>
+              <th>Email</th>
+              <th class="text-center">Sessions</th>
+              <th class="text-end">Total Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for student in top_students %}
+              <tr>
+                <td>
+                  <div class="fw-semibold text-dark">{{ student.get_full_name|default:student.username }}</div>
+                  <small class="text-muted">@{{ student.username }}</small>
+                </td>
+                <td class="small">{{ student.email }}</td>
+                <td class="text-center">
+                  <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">{{ student.sessions_count }}</span>
+                </td>
+                <td class="text-end small fw-bold">
+                  {{ student.learning_time|default:0 }} min
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="text-center py-4 text-muted small">No student attendance data available.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Most Attended Classes -->
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-header bg-white border-bottom border-light py-3">
+    <div class="fw-bold fs-6">
+      <i class="bi bi-star-fill text-warning me-1"></i> Most Attended Live Classes
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light small text-muted">
+        <tr>
+          <th>Class Title</th>
+          <th>Subject</th>
+          <th>Instructor</th>
+          <th>Room Code</th>
+          <th>Status</th>
+          <th class="text-end">Total Participants</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in most_attended_classes %}
+          <tr>
+            <td class="fw-semibold text-dark">{{ c.title }}</td>
+            <td class="small">{{ c.subject }}</td>
+            <td class="small">{{ c.teacher.get_full_name|default:c.teacher.username }}</td>
+            <td><code class="text-primary fw-bold">{{ c.room_code }}</code></td>
+            <td>
+              {% if c.status == 'LIVE' %}
+                <span class="badge bg-danger">LIVE</span>
+              {% elif c.status == 'SCHEDULED' %}
+                <span class="badge bg-primary">Scheduled</span>
+              {% elif c.status == 'COMPLETED' %}
+                <span class="badge bg-secondary">Completed</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">{{ c.get_status_display }}</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <span class="badge bg-dark px-2.5 py-1.5 fs-7">{{ c.participants_count }}</span>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center py-4 text-muted small">No classroom participation records found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

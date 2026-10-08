@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - LiveClass{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card card-modern border-0 shadow p-4 p-md-5">
+        <div class="d-flex align-items-center mb-4">
+          <div class="avatar-circle me-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+            {{ user.username|make_list|first|upper }}
+          </div>
+          <div>
+            <h4 class="fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h4>
+            <div class="d-flex gap-2 align-items-center">
+              <span class="badge {% if user.is_teacher %}badge-role-teacher{% elif user.is_student %}badge-role-student{% else %}badge-role-admin{% endif %}">
+                {{ user.get_role_display }}
+              </span>
+              <span class="text-secondary small">Member since {{ user.date_joined|date:"M Y" }}</span>
+            </div>
+          </div>
+        </div>
+
+        <h5 class="fw-bold border-bottom pb-2 mb-4">Profile Details</h5>
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold small text-secondary">First Name</label>
+              {{ form.first_name }}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold small text-secondary">Last Name</label>
+              {{ form.last_name }}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold small text-secondary">Email Address</label>
+              {{ form.email }}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.phone_number.id_for_label }}" class="form-label fw-semibold small text-secondary">Phone Number</label>
+              {{ form.phone_number }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.bio.id_for_label }}" class="form-label fw-semibold small text-secondary">Bio / Specialization</label>
+            {{ form.bio }}
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a href="{% url 'core:dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary-gradient px-4">
+              <i class="bi bi-check2 me-1"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

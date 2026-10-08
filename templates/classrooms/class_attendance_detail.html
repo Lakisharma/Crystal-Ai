@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance: {{ live_class.title }} - TeachLive{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:teacher_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'classrooms:teacher_attendance' %}">Attendance</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ live_class.title }}</li>
+    </ol>
+  </nav>
+
+  <!-- Header Card -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1 font-monospace">
+            {{ live_class.room_code }}
+          </span>
+          <span class="badge {% if live_class.is_live %}bg-danger{% else %}bg-secondary{% endif %} px-2 py-1">
+            {{ live_class.get_status_display }}
+          </span>
+        </div>
+        <h3 class="fw-bold text-dark mb-1">{{ live_class.title }}</h3>
+        <p class="text-muted small mb-0">
+          Subject: <strong>{{ live_class.subject }}</strong> &bull; Date: <strong>{{ live_class.scheduled_date|date:"F d, Y" }}</strong> &bull; Teacher: <strong>Prof. {{ live_class.teacher.get_full_name|default:live_class.teacher.username }}</strong>
+        </p>
+      </div>
+
+      <div class="d-flex gap-2">
+        <a href="{% url 'classrooms:teacher_class_attendance_export' live_class.pk %}" class="btn btn-success rounded-pill px-4 fw-semibold shadow-sm">
+          <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Class CSV
+        </a>
+        {% if live_class.is_live %}
+          <a href="{% url 'classrooms:teacher_class_live' live_class.pk %}" class="btn btn-danger rounded-pill px-4 fw-semibold shadow-sm">
+            <i class="bi bi-camera-video-fill me-1"></i> Go to Live Classroom
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Metric Cards (Section 10) -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Total Students</div>
+        <h3 class="fw-bold text-dark mb-0">{{ total_students }}</h3>
+        <span class="text-muted small">Registered in session</span>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Present / Active</div>
+        <h3 class="fw-bold text-success mb-0">{{ present_count }}</h3>
+        <span class="text-muted small">Currently participating</span>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Exited / Disconnected</div>
+        <h3 class="fw-bold text-secondary mb-0">{{ left_count|add:disconnected_count }}</h3>
+        <span class="text-muted small">Completed or timed out</span>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Average Duration</div>
+        <h3 class="fw-bold text-primary mb-0">{{ avg_duration_mins }} min</h3>
+        <span class="text-muted small">Average participation time</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Attendance Table -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+    <div class="p-3 px-4 border-bottom bg-light d-flex justify-content-between align-items-center">
+      <h6 class="fw-bold text-dark mb-0">Class Attendance Log</h6>
+      <span class="badge bg-light text-dark border px-2">{{ attendances|length }} Records</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light text-uppercase small text-muted">
+          <tr>
+            <th class="ps-4">Student</th>
+            <th>Email</th>
+            <th>Join Time</th>
+            <th>Leave Time</th>
+            <th>Total Duration</th>
+            <th class="text-end pe-4">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for att in attendances %}
+            <tr>
+              <td class="ps-4">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                    {{ att.student_name|first|upper }}
+                  </div>
+                  <span class="fw-semibold text-dark">{{ att.student_name }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="text-muted small">{{ att.student.email|default:"N/A" }}</span>
+              </td>
+              <td>
+                <span class="text-dark small">{{ att.joined_at|date:"H:i:s" }}</span>
+              </td>
+              <td>
+                {% if att.left_at %}
+                  <span class="text-dark small">{{ att.left_at|date:"H:i:s" }}</span>
+                {% else %}
+                  <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">
+                    <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i> Active Now
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="fw-bold text-primary">{{ att.total_duration }} min</span>
+              </td>
+              <td class="text-end pe-4">
+                {% if att.status == 'PRESENT' %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Present</span>
+                {% elif att.status == 'LEFT' %}
+                  <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">Left</span>
+                {% elif att.status == 'DISCONNECTED' %}
+                  <span class="badge bg-warning-subtle text-warning border px-2 py-1">Disconnected</span>
+                {% else %}
+                  <span class="badge bg-danger-subtle text-danger border px-2 py-1">{{ att.get_status_display }}</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-5 text-muted">
+                <i class="bi bi-people fs-1 d-block mb-2 text-secondary"></i>
+                No attendance records have been logged for this class session yet.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Student Details - TeachLive" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-header-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .profile-avatar-placeholder {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+  .stat-card {
+    border: none;
+    border-radius: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.08) !important;
+  }
+  .timeline-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:teacher_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'classrooms:teacher_students' %}" class="text-decoration-none">My Students</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ student.get_full_name|default:student.username }}</li>
+    </ol>
+  </nav>
+
+  <!-- Student Profile Card -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        {% if student.avatar_url %}
+          <img src="{{ student.avatar_url }}" alt="{{ student.username }}" class="profile-header-avatar border border-2 border-primary">
+        {% else %}
+          <div class="profile-avatar-placeholder bg-primary bg-opacity-10 text-primary border border-2 border-primary border-opacity-25">
+            {{ student.username|make_list|first|upper }}
+          </div>
+        {% endif %}
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <h3 class="fw-bold text-dark mb-0">{{ student.get_full_name|default:student.username }}</h3>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">Student</span>
+            {% if active_classes > 0 %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Active</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary px-2 py-1">Inactive</span>
+            {% endif %}
+          </div>
+          <div class="d-flex flex-wrap gap-3 text-secondary small">
+            <span><i class="bi bi-person me-1"></i> @{{ student.username }}</span>
+            <span><i class="bi bi-envelope me-1"></i> {{ student.email|default:"No email registered" }}</span>
+            <span><i class="bi bi-calendar3 me-1"></i> Joined: {{ student.date_joined|date:"M d, Y" }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <a href="{% url 'classrooms:teacher_students' %}" class="btn btn-outline-secondary rounded-pill px-3">
+          <i class="bi bi-arrow-left me-1"></i> Back to Directory
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric Summary Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="card stat-card shadow-sm p-3 bg-white h-100 border-start border-4 border-primary">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Enrolled Classes</div>
+        <h3 class="fw-bold text-primary mb-0">{{ total_classes }}</h3>
+        <span class="text-muted small">{{ active_classes }} currently active</span>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card stat-card shadow-sm p-3 bg-white h-100 border-start border-4 border-success">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Completed Classes</div>
+        <h3 class="fw-bold text-success mb-0">{{ completed_classes }}</h3>
+        <span class="text-muted small">Finished sessions</span>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card stat-card shadow-sm p-3 bg-white h-100 border-start border-4 border-info">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Overall Attendance</div>
+        <h3 class="fw-bold text-info mb-0">{{ overall_attendance_rate }}%</h3>
+        <span class="text-muted small">{{ total_attended_sessions }} sessions attended</span>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card stat-card shadow-sm p-3 bg-white h-100 border-start border-4 border-warning">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Total Time in Class</div>
+        <h3 class="fw-bold text-warning mb-0">{{ total_minutes_attended }} min</h3>
+        <span class="text-muted small">Live participation time</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- Class History (Left 8 cols) -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden h-100">
+        <div class="card-header bg-white border-bottom p-3 px-4">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h5 class="fw-bold mb-0 text-dark">
+              Class History & Enrollment
+            </h5>
+            <form method="get" class="d-flex gap-2">
+              <input type="text" name="q" value="{{ search_query }}" class="form-control form-control-sm bg-light border-0" placeholder="Search class...">
+              <select name="status" class="form-select form-select-sm bg-light border-0">
+                <option value="">All Statuses</option>
+                <option value="ENROLLED" {% if selected_status == 'ENROLLED' %}selected{% endif %}>Enrolled</option>
+                <option value="INVITED" {% if selected_status == 'INVITED' %}selected{% endif %}>Invited</option>
+                <option value="REVOKED" {% if selected_status == 'REVOKED' %}selected{% endif %}>Revoked</option>
+                <option value="COMPLETED" {% if selected_status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+              </select>
+              <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3">Filter</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Class Title</th>
+                <th>Subject</th>
+                <th>Enrollment Status</th>
+                <th>Attendance</th>
+                <th>Date</th>
+                <th class="text-end pe-4">Class Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in class_history_items %}
+                <tr>
+                  <td class="ps-4">
+                    <div class="fw-bold text-dark">{{ item.class.title }}</div>
+                    <span class="font-monospace text-muted small">{{ item.class.room_code }}</span>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-dark border">{{ item.class.subject }}</span>
+                  </td>
+                  <td>
+                    {% if item.status == 'ENROLLED' %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Enrolled</span>
+                    {% elif item.status == 'INVITED' %}
+                      <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">Invited</span>
+                    {% elif item.status == 'REVOKED' %}
+                      <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1" {% if item.revoked_reason %}title="{{ item.revoked_reason }}"{% endif %}>
+                        Removed
+                      </span>
+                      {% if item.revoked_reason %}
+                        <div class="small text-danger text-truncate" style="max-width: 140px;">
+                          {{ item.revoked_reason }}
+                        </div>
+                      {% endif %}
+                    {% elif item.status == 'COMPLETED' %}
+                      <span class="badge bg-secondary-subtle text-secondary px-2 py-1">Completed</span>
+                    {% else %}
+                      <span class="badge bg-light text-muted border px-2 py-1">{{ item.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if item.attendance %}
+                      {% if item.attendance.status == 'PRESENT' %}
+                        <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle me-1"></i>Present ({{ item.attendance.total_duration }}m)</span>
+                      {% elif item.attendance.status == 'LEFT' %}
+                        <span class="badge bg-secondary-subtle text-secondary">Left ({{ item.attendance.total_duration }}m)</span>
+                      {% else %}
+                        <span class="badge bg-warning-subtle text-warning">{{ item.attendance.get_status_display }}</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="text-muted small">No record</span>
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">
+                    {{ item.class.scheduled_date|date:"M d, Y" }}
+                  </td>
+                  <td class="text-end pe-4">
+                    <a href="{% url 'classrooms:teacher_class_students' item.class.room_code %}" class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Manage students in class">
+                      <i class="bi bi-people me-1"></i> Manage
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center py-5 text-muted">
+                    <p class="mb-0">No class history records found matching criteria.</p>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+          <div class="p-3 border-top d-flex justify-content-center">
+            <ul class="pagination pagination-sm mb-0">
+              {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">Previous</a></li>
+              {% endif %}
+              <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+              {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">Next</a></li>
+              {% endif %}
+            </ul>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Recent Activity Timeline (Right 4 cols) -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100">
+        <h5 class="fw-bold mb-3 text-dark">
+          <i class="bi bi-clock-history me-1 text-primary"></i> Recent Activity
+        </h5>
+
+        {% if recent_activity %}
+          <div class="timeline d-flex flex-column gap-3">
+            {% for act in recent_activity %}
+              <div class="d-flex align-items-start gap-3 p-2 rounded-3 bg-light bg-opacity-50">
+                <div class="timeline-icon bg-{{ act.badge_class }} bg-opacity-10 text-{{ act.badge_class }} flex-shrink-0">
+                  <i class="bi {{ act.icon }}"></i>
+                </div>
+                <div class="flex-grow-1 overflow-hidden">
+                  <div class="fw-semibold text-dark small">{{ act.title }}</div>
+                  <div class="text-muted small text-truncate">{{ act.class_title }} ({{ act.room_code }})</div>
+                  <div class="text-secondary" style="font-size: 0.75rem;">
+                    {{ act.timestamp|date:"M d, Y H:i" }}
+                    {% if act.duration %} &bull; {{ act.duration }} mins{% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-journal-x fs-1 opacity-50 mb-2 d-block"></i>
+            <p class="small mb-0">No recent activity logged for this student.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

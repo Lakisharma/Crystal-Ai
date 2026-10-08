@@ -1,0 +1,147 @@
+{% extends 'admin_dashboard/base_admin.html' %}
+
+{% block title %}Live Class Management - TeachLive Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Live Class Management</h3>
+    <p class="text-muted mb-0 small">Overview and operational control of all scheduled, live, and concluded classes.</p>
+  </div>
+</div>
+
+<!-- Filters & Search Toolbar -->
+<div class="card border-0 shadow-sm rounded-3 mb-4">
+  <div class="card-body p-3">
+    <form method="get" class="row g-2 align-items-center">
+      <div class="col-md-3">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" name="q" value="{{ search_query }}" class="form-control bg-light border-start-0" placeholder="Title, room code, teacher...">
+        </div>
+      </div>
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Statuses</option>
+          {% for code, label in status_choices %}
+            <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="teacher_id" class="form-select form-select-sm">
+          <option value="">All Teachers</option>
+          {% for t in all_teachers %}
+            <option value="{{ t.id }}" {% if selected_teacher == t.id|stringformat:"s" %}selected{% endif %}>
+              {{ t.get_full_name|default:t.username }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <input type="date" name="date" value="{{ selected_date }}" class="form-control form-control-sm" title="Scheduled Date">
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm px-3">
+          <i class="bi bi-funnel me-1"></i> Filter
+        </button>
+        {% if search_query or selected_status or selected_teacher or selected_date or selected_subject %}
+          <a href="{% url 'admin_dashboard:classes' %}" class="btn btn-outline-secondary btn-sm px-3">Reset</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Classes Table -->
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light small text-muted">
+        <tr>
+          <th>Class Title</th>
+          <th>Subject</th>
+          <th>Teacher</th>
+          <th>Room Code</th>
+          <th>Schedule</th>
+          <th>Status</th>
+          <th>Participants</th>
+          <th>Created Date</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in classes %}
+          <tr>
+            <td>
+              <div class="fw-semibold text-dark">{{ c.title }}</div>
+              <small class="text-muted">Max: {{ c.max_students }} students</small>
+            </td>
+            <td class="small">{{ c.subject }}</td>
+            <td>
+              <div class="small fw-medium">{{ c.teacher.get_full_name|default:c.teacher.username }}</div>
+              <small class="text-muted">{{ c.teacher.email }}</small>
+            </td>
+            <td><code class="text-primary fw-bold">{{ c.room_code }}</code></td>
+            <td>
+              <div class="small">{{ c.scheduled_date }}</div>
+              <small class="text-muted">{{ c.scheduled_time|time:"H:i" }}</small>
+            </td>
+            <td>
+              {% if c.status == 'LIVE' %}
+                <span class="badge bg-danger">LIVE</span>
+              {% elif c.status == 'SCHEDULED' %}
+                <span class="badge bg-primary">Scheduled</span>
+              {% elif c.status == 'COMPLETED' %}
+                <span class="badge bg-secondary">Completed</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">{{ c.get_status_display }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ c.participants_count }}</span>
+            </td>
+            <td class="small text-muted">{{ c.created_at|date:"M d, Y" }}</td>
+            <td class="text-end">
+              <a href="{% url 'admin_dashboard:class_detail' pk=c.pk %}" class="btn btn-sm btn-outline-primary py-1 px-2.5">
+                Manage
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="9" class="text-center py-5 text-muted small">
+              <i class="bi bi-camera-video-off fs-3 text-secondary opacity-50 d-block mb-1"></i>
+              No live classes found matching your filters.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if classes.has_other_pages %}
+    <div class="card-footer bg-white border-top border-light py-3 d-flex justify-content-between align-items-center">
+      <small class="text-muted">Showing {{ classes.start_index }} to {{ classes.end_index }} of {{ total_count }} classes</small>
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          {% if classes.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ classes.previous_page_number }}&q={{ search_query }}&status={{ selected_status }}&teacher_id={{ selected_teacher }}&date={{ selected_date }}">Previous</a></li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+          {% endif %}
+
+          <li class="page-item active"><span class="page-link">{{ classes.number }}</span></li>
+
+          {% if classes.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ classes.next_page_number }}&q={{ search_query }}&status={{ selected_status }}&teacher_id={{ selected_teacher }}&date={{ selected_date }}">Next</a></li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

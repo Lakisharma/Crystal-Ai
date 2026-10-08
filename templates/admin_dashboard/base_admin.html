@@ -1,0 +1,342 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin Dashboard - TeachLive{% endblock %}</title>
+
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <style>
+    :root {
+      --admin-navy: #0f172a;
+      --admin-navy-dark: #0a0f1d;
+      --admin-blue: #2563eb;
+      --admin-blue-hover: #1d4ed8;
+      --admin-sidebar-w: 260px;
+      --admin-bg: #f8fafc;
+      --admin-border: #e2e8f0;
+      --admin-text: #1e293b;
+      --admin-muted: #64748b;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--admin-bg);
+      color: var(--admin-text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    h1, h2, h3, h4, h5, h6, .brand-font {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Sidebar Navigation */
+    .admin-sidebar {
+      width: var(--admin-sidebar-w);
+      background-color: var(--admin-navy);
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 1040;
+      transition: transform 0.3s ease-in-out;
+      overflow-y: auto;
+    }
+
+    .admin-brand {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: #ffffff;
+      text-decoration: none;
+    }
+    .admin-brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 1.25rem;
+    }
+
+    .admin-nav {
+      padding: 1rem 0.75rem;
+      flex: 1;
+    }
+
+    .admin-nav .nav-heading {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      padding: 0.75rem 0.75rem 0.35rem;
+      font-weight: 700;
+    }
+
+    .admin-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      color: #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      margin-bottom: 0.2rem;
+    }
+    .admin-nav-item:hover {
+      background-color: rgba(255, 255, 255, 0.06);
+      color: #ffffff;
+    }
+    .admin-nav-item.active {
+      background-color: var(--admin-blue);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+    .admin-nav-item i {
+      font-size: 1.15rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    /* Main Content Wrapper */
+    .admin-main {
+      margin-left: var(--admin-sidebar-w);
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Top Navbar */
+    .admin-header {
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--admin-border);
+      padding: 0.85rem 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 1020;
+    }
+
+    .admin-body {
+      padding: 1.75rem;
+      flex: 1;
+    }
+
+    /* Stat Cards */
+    .stat-card {
+      background-color: #ffffff;
+      border: 1px solid var(--admin-border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    }
+    .stat-icon-box {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 991.98px) {
+      .admin-sidebar {
+        transform: translateX(-100%);
+      }
+      .admin-sidebar.show {
+        transform: translateX(0);
+      }
+      .admin-main {
+        margin-left: 0;
+      }
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Sidebar Overlay for Mobile -->
+  <div id="sidebarOverlay" class="position-fixed inset-0 bg-dark bg-opacity-50 d-none" style="z-index: 1035;" onclick="toggleAdminSidebar()"></div>
+
+  <!-- Sidebar Navigation -->
+  <aside id="adminSidebar" class="admin-sidebar">
+    <a href="{% url 'admin_dashboard:dashboard' %}" class="admin-brand">
+      <div class="admin-brand-icon">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+      <div>
+        <div class="fw-bold fs-5 lh-1 brand-font">TeachLive</div>
+        <small class="text-info fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.05em;">ADMIN PORTAL</small>
+      </div>
+    </a>
+
+    <nav class="admin-nav">
+      <div class="nav-heading">Core</div>
+      <a href="{% url 'admin_dashboard:dashboard' %}" class="admin-nav-item {% if active_menu == 'dashboard' %}active{% endif %}">
+        <i class="bi bi-grid-fill"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <div class="nav-heading">User Management</div>
+      <a href="{% url 'admin_dashboard:teachers' %}" class="admin-nav-item {% if active_menu == 'teachers' %}active{% endif %}">
+        <i class="bi bi-person-video3"></i>
+        <span>Teachers</span>
+      </a>
+      <a href="{% url 'admin_dashboard:students' %}" class="admin-nav-item {% if active_menu == 'students' %}active{% endif %}">
+        <i class="bi bi-mortarboard-fill"></i>
+        <span>Students</span>
+      </a>
+
+      <div class="nav-heading">Classroom Operations</div>
+      <a href="{% url 'admin_dashboard:classes' %}" class="admin-nav-item {% if active_menu == 'classes' %}active{% endif %}">
+        <i class="bi bi-camera-video-fill"></i>
+        <span>Live Classes</span>
+      </a>
+      <a href="{% url 'admin_dashboard:attendance' %}" class="admin-nav-item {% if active_menu == 'attendance' %}active{% endif %}">
+        <i class="bi bi-calendar-check-fill"></i>
+        <span>Attendance</span>
+      </a>
+      <a href="{% url 'admin_dashboard:chat' %}" class="admin-nav-item {% if active_menu == 'chat' %}active{% endif %}">
+        <i class="bi bi-chat-left-dots-fill"></i>
+        <span>Chat Reports</span>
+      </a>
+
+      <div class="nav-heading">Communications & Alerts</div>
+      <a href="{% url 'admin_dashboard:notifications' %}" class="admin-nav-item {% if active_menu == 'notifications' %}active{% endif %}">
+        <i class="bi bi-bell-fill"></i>
+        <span>Notifications Log</span>
+      </a>
+      <a href="{% url 'admin_dashboard:emails' %}" class="admin-nav-item {% if active_menu == 'emails' %}active{% endif %}">
+        <i class="bi bi-envelope-paper-fill"></i>
+        <span>Email Delivery Logs</span>
+      </a>
+
+      <div class="nav-heading">System & Intelligence</div>
+      <a href="{% url 'admin_dashboard:reports' %}" class="admin-nav-item {% if active_menu == 'reports' %}active{% endif %}">
+        <i class="bi bi-graph-up-arrow"></i>
+        <span>Reports & Analytics</span>
+      </a>
+      <a href="{% url 'admin_dashboard:audit_logs' %}" class="admin-nav-item {% if active_menu == 'audit_logs' %}active{% endif %}">
+        <i class="bi bi-journal-text"></i>
+        <span>Audit Logs</span>
+      </a>
+      <a href="{% url 'admin_dashboard:settings' %}" class="admin-nav-item {% if active_menu == 'settings' %}active{% endif %}">
+        <i class="bi bi-gear-fill"></i>
+        <span>Platform Settings</span>
+      </a>
+    </nav>
+
+    <div class="p-3 border-top border-secondary border-opacity-25">
+      <a href="{% url 'core:home' %}" target="_blank" class="admin-nav-item text-light mb-1">
+        <i class="bi bi-box-arrow-up-right"></i>
+        <span>View Live Site</span>
+      </a>
+      <a href="/admin/" target="_blank" class="admin-nav-item text-light mb-1">
+        <i class="bi bi-database"></i>
+        <span>Django Admin</span>
+      </a>
+      <a href="{% url 'accounts:logout' %}" class="admin-nav-item text-danger">
+        <i class="bi bi-box-arrow-left"></i>
+        <span>Sign Out</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="admin-main">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-outline-secondary btn-sm d-lg-none" onclick="toggleAdminSidebar()" aria-label="Toggle Navigation">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1.5 fw-semibold d-none d-sm-inline-flex">
+          <i class="bi bi-shield-check me-1"></i> TeachLive Administrator
+        </span>
+      </div>
+
+      <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'notifications:list' %}" class="btn btn-light btn-sm position-relative rounded-circle p-2 d-flex align-items-center justify-content-center border" style="width: 38px; height: 38px;" title="Notifications">
+          <i class="bi bi-bell fs-6 text-dark"></i>
+          {% if unread_notifications_count > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-2 border-white" style="font-size: 0.65rem;">
+              {{ unread_notifications_count }}
+            </span>
+          {% endif %}
+        </a>
+        <div class="text-end d-none d-sm-block">
+          <div class="fw-bold small">{{ request.user.get_full_name|default:request.user.username }}</div>
+          <small class="text-muted" style="font-size: 0.75rem;">{{ request.user.email }}</small>
+        </div>
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 38px; height: 38px;">
+          {{ request.user.username|make_list|first|upper }}
+        </div>
+      </div>
+    </header>
+
+    <!-- Global Alerts -->
+    {% if messages %}
+      <div class="container-fluid px-4 pt-3">
+        {% for message in messages %}
+          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill text-success{% elif message.tags == 'error' or message.tags == 'danger' %}bi-exclamation-triangle-fill text-danger{% else %}bi-info-circle-fill text-primary{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Page Body -->
+    <main class="admin-body">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- Bootstrap Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    function toggleAdminSidebar() {
+      const sidebar = document.getElementById('adminSidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('show');
+      overlay.classList.toggle('d-none');
+    }
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

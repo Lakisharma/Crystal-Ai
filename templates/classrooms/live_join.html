@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ live_class.title }} - TeachLive Live Class{% endblock %}
+{% block meta_description %}Join {{ live_class.title }} on TeachLive.{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+
+      <!-- Header Card -->
+      <div class="text-center mb-4">
+        <a href="{% url 'core:home' %}" class="d-inline-flex align-items-center text-decoration-none mb-3">
+          <span class="p-2 rounded-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 text-primary me-2">
+            <i class="bi bi-mortarboard-fill fs-3 text-primary"></i>
+          </span>
+          <span class="fs-3 fw-bold text-dark">Teach<span class="text-primary">Live</span></span>
+        </a>
+        <div class="text-uppercase tracking-wider small fw-bold text-muted">Virtual Live Classroom</div>
+      </div>
+
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        
+        <!-- Status Header Banner -->
+        <div class="p-4 text-white text-center {% if live_class.is_live %}bg-danger{% elif live_class.is_scheduled %}bg-primary{% elif live_class.is_completed %}bg-secondary{% else %}bg-dark{% endif %}">
+          <div class="d-inline-flex align-items-center gap-2 mb-2 px-3 py-1 rounded-pill bg-black bg-opacity-25 border border-white border-opacity-25 small fw-semibold">
+            {% if live_class.is_live %}
+              <span class="spinner-grow spinner-grow-sm text-light" role="status" aria-hidden="true"></span>
+              <span>LIVE NOW</span>
+            {% elif live_class.is_scheduled %}
+              <i class="bi bi-clock-fill"></i>
+              <span>SCHEDULED</span>
+            {% elif live_class.is_completed %}
+              <i class="bi bi-check-circle-fill"></i>
+              <span>ENDED</span>
+            {% else %}
+              <i class="bi bi-x-circle-fill"></i>
+              <span>CANCELLED</span>
+            {% endif %}
+          </div>
+          <h1 class="h3 fw-bold text-white mb-1">{{ live_class.title }}</h1>
+          <div class="text-white-50 small">{{ live_class.subject }} &bull; Room Code: <span class="font-monospace text-white fw-bold">{{ live_class.room_code }}</span></div>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+
+          <!-- Teacher Profile & Metadata -->
+          <div class="d-flex align-items-center p-3 rounded-4 bg-light mb-4 border">
+            {% if live_class.teacher.avatar_url %}
+              <img src="{{ live_class.teacher.avatar_url }}" alt="{{ live_class.teacher.get_full_name }}" class="rounded-circle me-3 border border-2 border-primary" style="width: 56px; height: 56px; object-fit: cover;">
+            {% else %}
+              <div class="avatar-circle me-3 bg-primary text-white" style="width: 56px; height: 56px; font-size: 1.3rem;">
+                {{ live_class.teacher.first_name|default:live_class.teacher.username|make_list|first|upper }}
+              </div>
+            {% endif %}
+            <div class="flex-grow-1">
+              <div class="small text-muted fw-semibold">Instructor</div>
+              <h5 class="fw-bold text-dark mb-0">Prof. {{ live_class.teacher.get_full_name|default:live_class.teacher.username }}</h5>
+              <div class="small text-muted">{{ live_class.teacher.bio|default:"Course Instructor"|truncatechars:40 }}</div>
+            </div>
+            {% if is_teacher_owner %}
+              <span class="badge bg-primary text-white rounded-pill px-3 py-1">You are the Instructor</span>
+            {% endif %}
+          </div>
+
+          <!-- Schedule Details Grid -->
+          <div class="row g-3 mb-4 text-center">
+            <div class="col-4">
+              <div class="p-2 border rounded-3 bg-light bg-opacity-50">
+                <div class="text-muted small">Date</div>
+                <div class="fw-bold text-dark">{{ live_class.scheduled_date|date:"M d, Y" }}</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-2 border rounded-3 bg-light bg-opacity-50">
+                <div class="text-muted small">Time</div>
+                <div class="fw-bold text-dark">{{ live_class.scheduled_time|time:"H:i" }}</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-2 border rounded-3 bg-light bg-opacity-50">
+                <div class="text-muted small">Duration</div>
+                <div class="fw-bold text-dark">{{ live_class.duration }} min</div>
+              </div>
+            </div>
+          </div>
+
+          {% if live_class.description %}
+            <div class="mb-4">
+              <h6 class="small fw-bold text-muted text-uppercase mb-1">Session Overview</h6>
+              <p class="text-muted small mb-0">{{ live_class.description|linebreaksbr }}</p>
+            </div>
+          {% endif %}
+
+          <hr class="my-4 text-muted">
+
+          <!-- Action States Based on Class Status -->
+          
+          {% if live_class.is_cancelled %}
+            <!-- CANCELLED STATUS -->
+            <div class="alert alert-danger d-flex align-items-center rounded-3 mb-4" role="alert">
+              <i class="bi bi-x-octagon-fill fs-4 me-3"></i>
+              <div>
+                <h6 class="fw-bold mb-0">This class has been cancelled.</h6>
+                <div class="small">The instructor has cancelled this session. Please check with your teacher for rescheduling.</div>
+              </div>
+            </div>
+            <div class="d-grid">
+              <a href="{% url 'student:dashboard' %}" class="btn btn-outline-secondary py-2 rounded-3">
+                <i class="bi bi-arrow-left me-1"></i> Return to Dashboard
+              </a>
+            </div>
+
+          {% elif live_class.is_completed %}
+            <!-- ENDED STATUS -->
+            <div class="alert alert-secondary d-flex align-items-center rounded-3 mb-4" role="alert">
+              <i class="bi bi-info-circle-fill fs-4 me-3 text-secondary"></i>
+              <div>
+                <h6 class="fw-bold mb-0">This live class has ended.</h6>
+                <div class="small">The live broadcast is no longer accepting new participants.</div>
+              </div>
+            </div>
+            <div class="d-grid">
+              <a href="{% url 'student:dashboard' %}" class="btn btn-outline-secondary py-2 rounded-3">
+                <i class="bi bi-arrow-left me-1"></i> Return to Dashboard
+              </a>
+            </div>
+
+          {% elif not is_teacher_owner and live_class.access_mode == 'ENROLLMENT_ONLY' and not is_enrolled %}
+            <!-- ENROLLMENT ONLY RESTRICTION FOR UNENROLLED STUDENTS -->
+            <div class="alert {% if is_revoked %}alert-danger{% elif pending_request %}alert-info{% else %}alert-warning{% endif %} rounded-4 p-4 mb-4 border-0">
+              <div class="d-flex align-items-start">
+                {% if is_revoked %}
+                  <i class="bi bi-shield-x fs-2 text-danger me-3 mt-1"></i>
+                  <div>
+                    <h5 class="fw-bold mb-1 text-danger">Enrollment Revoked</h5>
+                    <p class="small mb-0 text-muted">
+                      Your enrollment for this class has been revoked. If you believe this is in error, please contact your instructor directly.
+                    </p>
+                  </div>
+                {% elif pending_request %}
+                  <i class="bi bi-clock-history fs-2 text-info me-3 mt-1"></i>
+                  <div>
+                    <h5 class="fw-bold mb-1 text-info">Access Request Pending Review</h5>
+                    <p class="small mb-0 text-muted">
+                      You have submitted a request to join this class. The instructor has been notified and will review your request. You will receive an in-app alert when approved.
+                    </p>
+                  </div>
+                {% else %}
+                  <i class="bi bi-lock-fill fs-2 text-warning me-3 mt-1"></i>
+                  <div>
+                    <h5 class="fw-bold mb-1 text-dark">Enrollment Required</h5>
+                    <p class="small mb-0 text-muted">
+                      This class is restricted to explicitly enrolled students. You can request access from the instructor below.
+                    </p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            {% if not pending_request and not is_revoked %}
+              <form method="post" action="{% url 'live_room:request_access' room_code=live_class.room_code %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <label for="id_request_note" class="form-label small fw-semibold text-secondary">
+                    Optional Message to Instructor:
+                  </label>
+                  <input type="text"
+                         name="request_note"
+                         id="id_request_note"
+                         class="form-control bg-light"
+                         placeholder="e.g. Student ID, reason for joining..."
+                         maxlength="300">
+                </div>
+                <div class="d-grid gap-2">
+                  <button type="submit" class="btn btn-primary py-3 rounded-3 fw-bold shadow-sm">
+                    <i class="bi bi-send-fill me-2"></i> Request Access to Join
+                  </button>
+                  <a href="{% url 'student:dashboard' %}" class="btn btn-outline-secondary py-2 rounded-3">
+                    <i class="bi bi-arrow-left me-1"></i> Return to Student Dashboard
+                  </a>
+                </div>
+              </form>
+            {% else %}
+              <div class="d-grid">
+                <a href="{% url 'student:dashboard' %}" class="btn btn-outline-secondary py-2 rounded-3">
+                  <i class="bi bi-arrow-left me-1"></i> Return to Student Dashboard
+                </a>
+              </div>
+            {% endif %}
+
+          {% elif live_class.is_scheduled and not is_teacher_owner %}
+            <!-- SCHEDULED STATUS (STUDENT VIEW) -->
+            <div class="alert alert-info rounded-3 p-3 mb-4 border-0 bg-info bg-opacity-10 text-dark">
+              <div class="d-flex align-items-start">
+                <i class="bi bi-hourglass-split fs-4 text-info me-3 mt-1"></i>
+                <div>
+                  <h6 class="fw-bold mb-1">
+                    {% if live_class.is_within_join_window %}
+                      Class join window is open
+                    {% else %}
+                      Class has not started yet
+                    {% endif %}
+                  </h6>
+                  <p class="small mb-0 text-muted">
+                    Scheduled for <strong>{{ live_class.scheduled_date|date:"l, M d" }} at {{ live_class.scheduled_time|time:"h:i A" }}</strong>.
+                    {% if live_class.is_within_join_window %}
+                      Waiting for the instructor to broadcast live.
+                    {% else %}
+                      Student join window opens 10 minutes prior to scheduled start.
+                    {% endif %}
+                  </p>
+                  <div class="mt-2 text-primary fw-semibold small">
+                    <i class="bi bi-clock me-1"></i> <span id="studentCountdownBadge">Starts in {{ live_class.countdown_seconds }}s</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="d-grid gap-2">
+              {% if live_class.is_within_join_window %}
+                <button class="btn btn-outline-info py-3 rounded-3 fw-semibold disabled">
+                  <span class="spinner-border spinner-border-sm me-2"></span> Waiting for Instructor to Broadcast
+                </button>
+              {% else %}
+                <button class="btn btn-secondary py-3 rounded-3 fw-semibold disabled">
+                  <i class="bi bi-lock me-1"></i> Join Opens 10m Before Class
+                </button>
+              {% endif %}
+              <a href="{% url 'student:dashboard' %}" class="btn btn-link text-muted text-decoration-none small text-center mt-1">
+                <i class="bi bi-arrow-left me-1"></i> Return to Student Dashboard
+              </a>
+            </div>
+
+          {% elif live_class.is_scheduled and is_teacher_owner %}
+            <!-- SCHEDULED STATUS (TEACHER VIEW) -->
+            {% if live_class.is_within_start_window %}
+              <div class="alert alert-success rounded-3 p-3 mb-4 border border-success-subtle">
+                <h6 class="fw-bold mb-1 text-success"><i class="bi bi-check-circle-fill me-1"></i> Ready to start your class!</h6>
+                <div class="small text-secondary">You are within the 15-minute start window. Click below to begin live instruction.</div>
+              </div>
+              <form method="post" action="{% url 'live_room:join' room_code=live_class.room_code %}">
+                {% csrf_token %}
+                <div class="d-grid gap-2">
+                  <button type="submit" class="btn btn-success py-3 rounded-3 fw-bold fs-5 shadow-sm">
+                    <i class="bi bi-broadcast me-2"></i> Start Class as Instructor
+                  </button>
+                </div>
+              </form>
+            {% else %}
+              <div class="alert alert-warning rounded-3 p-3 mb-4 border border-warning-subtle">
+                <h6 class="fw-bold mb-1 text-warning-emphasis"><i class="bi bi-clock-history me-1"></i> Class cannot be started yet</h6>
+                <div class="small text-secondary">
+                  Instructors can start sessions up to 15 minutes before scheduled start time.
+                  Scheduled for <strong>{{ live_class.scheduled_date|date:"M d, Y" }} at {{ live_class.scheduled_time|time:"h:i A" }}</strong>.
+                </div>
+                <div class="mt-2 text-dark fw-bold small">
+                  <i class="bi bi-stopwatch me-1"></i> <span id="teacherCountdownBadge">Starts in {{ live_class.countdown_seconds }}s</span>
+                </div>
+              </div>
+              <div class="d-grid gap-2">
+                <button type="button" class="btn btn-secondary py-3 rounded-3 fw-semibold disabled">
+                  <i class="bi bi-lock me-1"></i> Start Opens 15m Prior
+                </button>
+                <a href="{% url 'classrooms:live_reschedule' live_class.pk %}" class="btn btn-outline-info py-2 rounded-3">
+                  <i class="bi bi-calendar-event me-1"></i> Reschedule Class
+                </a>
+              </div>
+            {% endif %}
+
+          {% elif live_class.is_live %}
+            <!-- LIVE STATUS (ENTRY PERMITTED) -->
+
+            {% if is_capacity_reached and not is_teacher_owner %}
+              <div class="alert alert-warning d-flex align-items-center rounded-3 mb-4">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+                <div>
+                  <h6 class="fw-bold mb-0">Class capacity reached</h6>
+                  <div class="small">This live class has reached the maximum capacity of {{ live_class.max_students }} students.</div>
+                </div>
+              </div>
+              <div class="d-grid">
+                <a href="{% url 'student:dashboard' %}" class="btn btn-outline-secondary py-2 rounded-3">
+                  Return to Dashboard
+                </a>
+              </div>
+            {% else %}
+
+              <!-- Join Form -->
+              <form method="post" action="{% url 'live_room:join' room_code=live_class.room_code %}">
+                {% csrf_token %}
+
+                {% if has_password and not is_teacher_owner %}
+                  <div class="mb-4">
+                    <label for="id_room_password" class="form-label fw-bold text-dark d-flex align-items-center">
+                      <i class="bi bi-key-fill text-warning me-2"></i> Class Password
+                    </label>
+                    <div class="input-group">
+                      <input type="password"
+                             name="password"
+                             id="id_room_password"
+                             class="form-control form-control-lg bg-light"
+                             placeholder="Enter password given by teacher"
+                             autocomplete="off"
+                             required>
+                    </div>
+                    <div class="form-text small text-muted">This live room is password protected by your instructor.</div>
+                  </div>
+                {% endif %}
+
+                <div class="d-grid gap-2">
+                  <button type="submit" class="btn btn-danger py-3 rounded-3 fw-bold fs-5 shadow transition-all hover-lift">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Join Live Class
+                  </button>
+                </div>
+              </form>
+
+            {% endif %}
+
+          {% endif %}
+
+        </div>
+
+        <div class="card-footer bg-light border-0 py-3 px-4 text-center">
+          <span class="small text-muted">
+            Logged in as <strong>{{ request.user.get_full_name|default:request.user.username }}</strong> &bull;
+            <a href="{% url 'student:dashboard' %}" class="text-decoration-none">Dashboard</a>
+          </span>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function() {
+    {% if live_class.is_scheduled and live_class.scheduled_datetime %}
+      var targetTime = new Date("{{ live_class.scheduled_datetime|date:'c' }}").getTime();
+      var studentEl = document.getElementById('studentCountdownBadge');
+      var teacherEl = document.getElementById('teacherCountdownBadge');
+
+      function updateCountdown() {
+        var now = new Date().getTime();
+        var diff = targetTime - now;
+
+        var text = '';
+        if (diff <= 0) {
+          text = "Starting Now";
+        } else {
+          var hours = Math.floor(diff / (1000 * 60 * 60));
+          var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          var seconds = Math.floor((diff % (1000 * 60)) / 1000);
+          var pad = function(n) { return n < 10 ? '0' + n : n; };
+          text = "Starts in " + pad(hours) + ":" + pad(minutes) + ":" + pad(seconds);
+        }
+
+        if (studentEl) studentEl.textContent = text;
+        if (teacherEl) teacherEl.textContent = text;
+      }
+
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+
+      // Periodically refresh status every 25 seconds
+      setInterval(function() {
+        fetch("{% url 'live_room:status' live_class.room_code %}")
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.is_live) {
+              window.location.reload();
+            }
+          }).catch(function() {});
+      }, 25000);
+    {% endif %}
+  })();
+</script>
+{% endblock %}
+

@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ live_class.title }} - LiveClass{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Back button -->
+  <div class="mb-3">
+    <a href="{% url 'classrooms:live_list' %}" class="text-secondary small text-decoration-none">
+      <i class="bi bi-arrow-left me-1"></i> Back to All Classes
+    </a>
+  </div>
+
+  <!-- Header Card -->
+  <div class="card card-modern p-4 mb-4 border-0 shadow-sm bg-white">
+    <div class="row align-items-center g-3">
+      <div class="col-lg-8">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+          <span class="badge bg-primary-subtle text-primary fw-semibold">{{ live_class.subject }}</span>
+          {% if live_class.status == 'LIVE' %}
+            <span class="badge bg-danger d-inline-flex align-items-center gap-1 shadow-sm px-2 py-1">
+              <span class="spinner-grow spinner-grow-sm" style="width: 0.4rem; height: 0.4rem;"></span>
+              LIVE
+            </span>
+          {% elif live_class.status == 'SCHEDULED' %}
+            {% if live_class.is_within_start_window %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                <i class="bi bi-check-circle-fill me-1"></i> Ready to Start
+              </span>
+            {% else %}
+              <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+                <i class="bi bi-clock me-1"></i> <span id="classCountdownBadge">Starts Soon</span>
+              </span>
+            {% endif %}
+          {% elif live_class.status == 'COMPLETED' or live_class.is_ended %}
+            <span class="badge bg-secondary-subtle text-secondary px-2 py-1">
+              <i class="bi bi-check2 me-1"></i> ENDED
+            </span>
+          {% else %}
+            <span class="badge bg-danger-subtle text-danger px-2 py-1">
+              <i class="bi bi-x-circle me-1"></i> CANCELLED
+            </span>
+          {% endif %}
+
+          {% if live_class.has_password %}
+            <span class="badge bg-warning-subtle text-dark">
+              <i class="bi bi-lock-fill me-1"></i> Password Protected
+            </span>
+          {% endif %}
+        </div>
+
+        <h2 class="fw-bold mb-2">{{ live_class.title }}</h2>
+        <p class="text-secondary small mb-3">
+          {{ live_class.description|default:"No description provided for this session." }}
+        </p>
+
+        <div class="d-flex flex-wrap gap-4 align-items-center text-secondary small">
+          <div>
+            <i class="bi bi-calendar3 text-primary me-1"></i>
+            Date: <strong>{{ live_class.scheduled_date|date:"F d, Y" }} at {{ live_class.scheduled_time|time:"h:i A" }}</strong>
+          </div>
+          <div>
+            <i class="bi bi-hourglass-split text-info me-1"></i>
+            Duration: <strong>{{ live_class.duration }} mins</strong>
+          </div>
+          <div>
+            <i class="bi bi-people text-success me-1"></i>
+            Capacity: <strong>{{ live_class.participant_count }} / {{ live_class.max_students }}</strong>
+          </div>
+          <div>
+            <i class="bi bi-key-fill text-warning me-1"></i>
+            Room Code: <span class="code-pill fs-6">{{ live_class.room_code }}</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-1 btn-copy-code" data-code="{{ live_class.room_code }}" title="Copy room code">
+              <i class="bi bi-copy"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Controls (Teacher Only) -->
+      <div class="col-lg-4 text-lg-end">
+        {% if is_owner %}
+          <div class="d-flex flex-wrap justify-content-lg-end gap-2">
+            {% if live_class.is_scheduled %}
+              {% if live_class.is_within_start_window %}
+                <form action="{% url 'classrooms:live_start' live_class.pk %}" method="post" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-success btn-lg shadow-sm">
+                    <i class="bi bi-play-circle-fill me-1"></i> Start Live Class
+                  </button>
+                </form>
+              {% else %}
+                <div class="w-100 text-lg-end mb-1">
+                  <span class="badge bg-light text-muted border p-2 small">
+                    <i class="bi bi-info-circle me-1"></i> Start window opens 15 min prior
+                  </span>
+                </div>
+              {% endif %}
+            {% elif live_class.is_live %}
+              <a href="{% url 'classrooms:teacher_class_live' live_class.pk %}" class="btn btn-danger btn-lg shadow-sm">
+                <i class="bi bi-camera-video-fill me-1"></i> Enter Classroom
+              </a>
+              <form action="{% url 'classrooms:live_end' live_class.pk %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-lg">
+                  <i class="bi bi-stop-circle me-1"></i> End Class
+                </button>
+              </form>
+            {% endif %}
+
+            <a href="{% url 'classrooms:teacher_class_students' live_class.room_code %}" class="btn btn-outline-primary">
+              <i class="bi bi-people me-1"></i> Students
+            </a>
+
+            <a href="{% url 'classrooms:teacher_class_attendance' live_class.pk %}" class="btn btn-outline-success">
+              <i class="bi bi-clipboard-check me-1"></i> Attendance
+            </a>
+
+            {% if live_class.is_scheduled %}
+              <a href="{% url 'classrooms:live_reschedule' live_class.pk %}" class="btn btn-outline-info">
+                <i class="bi bi-calendar-event me-1"></i> Reschedule
+              </a>
+            {% endif %}
+
+            <a href="{% url 'classrooms:live_edit' live_class.pk %}" class="btn btn-outline-secondary">
+              <i class="bi bi-pencil me-1"></i> Edit
+            </a>
+
+            {% if live_class.is_scheduled %}
+              <a href="{% url 'classrooms:live_cancel' live_class.pk %}" class="btn btn-outline-warning">
+                <i class="bi bi-x-circle me-1"></i> Cancel
+              </a>
+            {% endif %}
+
+            <a href="{% url 'classrooms:live_delete' live_class.pk %}" class="btn btn-outline-danger">
+              <i class="bi bi-trash"></i>
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs: Participants, Attendance, Chat -->
+  <div class="card card-modern border-0 shadow-sm p-4">
+    <ul class="nav nav-tabs mb-4" id="classTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-semibold" id="participants-tab" data-bs-toggle="tab" data-bs-target="#participants-content" type="button" role="tab">
+          <i class="bi bi-people me-1"></i> Participants ({{ participants.count }})
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance-content" type="button" role="tab">
+          <i class="bi bi-clipboard-check me-1"></i> Logged Attendance ({{ attendances.count }})
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat-content" type="button" role="tab">
+          <i class="bi bi-chat-dots me-1"></i> Class Chat Messages ({{ chat_messages.count }})
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="classTabsContent">
+      <!-- Tab 1: Participants -->
+      <div class="tab-pane fade show active" id="participants-content" role="tabpanel">
+        {% if participants %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light small">
+                <tr>
+                  <th>Student Name</th>
+                  <th>Student Email</th>
+                  <th>Joined At</th>
+                  <th>Left At</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in participants %}
+                  <tr>
+                    <td class="fw-bold">{{ p.student_name }}</td>
+                    <td class="text-secondary small">{{ p.student_email }}</td>
+                    <td class="small">{{ p.join_time|date:"H:i, M d" }}</td>
+                    <td class="small text-muted">{{ p.leave_time|default:"In Room" }}</td>
+                    <td>
+                      <span class="badge {% if p.status == 'JOINED' %}bg-success-subtle text-success{% else %}bg-secondary{% endif %}">
+                        {{ p.get_status_display }}
+                      </span>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-people fs-1 d-block mb-2 text-secondary opacity-50"></i>
+            <p class="mb-0">No students have joined this live class session yet.</p>
+            <small>Share room code <strong>{{ live_class.room_code }}</strong> with students.</small>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Tab 2: Attendance -->
+      <div class="tab-pane fade" id="attendance-content" role="tabpanel">
+        {% if attendances %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light small">
+                <tr>
+                  <th>Student Name</th>
+                  <th>Joined At</th>
+                  <th>Left At</th>
+                  <th>Total Duration</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for att in attendances %}
+                  <tr>
+                    <td class="fw-bold">{{ att.student_name }}</td>
+                    <td class="small">{{ att.joined_at|date:"H:i, M d" }}</td>
+                    <td class="small text-muted">{{ att.left_at|default:"Session active" }}</td>
+                    <td>
+                      <span class="badge bg-primary-subtle text-primary">
+                        {{ att.total_duration }} mins
+                      </span>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-calendar-x fs-1 d-block mb-2 text-secondary opacity-50"></i>
+            <p class="mb-0">Attendance duration will automatically log as students participate.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Tab 3: Chat Messages -->
+      <div class="tab-pane fade" id="chat-content" role="tabpanel">
+        {% if chat_messages %}
+          <div class="list-group list-group-flush gap-2" style="max-height: 400px; overflow-y: auto;">
+            {% for msg in chat_messages %}
+              <div class="list-group-item border rounded-3 p-3 bg-light">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <div class="d-flex align-items-center gap-2">
+                    <strong>{{ msg.sender_name }}</strong>
+                    <span class="badge {% if msg.sender_role == 'TEACHER' %}badge-role-teacher{% else %}badge-role-student{% endif %}">
+                      {{ msg.get_sender_role_display }}
+                    </span>
+                  </div>
+                  <small class="text-muted">{{ msg.created_at|date:"M d, H:i" }}</small>
+                </div>
+                <div class="small text-dark">{{ msg.message }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary opacity-50"></i>
+            <p class="mb-0">No live chat messages recorded yet for this session.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function() {
+    var countdownEl = document.getElementById('classCountdownBadge');
+    if (!countdownEl) return;
+
+    {% if live_class.is_scheduled and live_class.scheduled_datetime %}
+      var targetTime = new Date("{{ live_class.scheduled_datetime|date:'c' }}").getTime();
+
+      function updateCountdown() {
+        var now = new Date().getTime();
+        var diff = targetTime - now;
+
+        if (diff <= 0) {
+          countdownEl.textContent = "Starting Now";
+          return;
+        }
+
+        var hours = Math.floor(diff / (1000 * 60 * 60));
+        var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        var pad = function(n) { return n < 10 ? '0' + n : n; };
+        countdownEl.textContent = 'Starts in ' + pad(hours) + ':' + pad(minutes) + ':' + pad(seconds);
+      }
+
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    {% endif %}
+  })();
+</script>
+{% endblock %}
+

@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .calendar-table {
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .calendar-table th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 10px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .calendar-day-cell {
+    min-height: 125px;
+    height: 135px;
+    vertical-align: top;
+    padding: 6px;
+    background-color: #ffffff;
+    border-right: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.15s ease-in-out;
+  }
+  .calendar-day-cell:hover {
+    background-color: #f8fafc;
+  }
+  .calendar-day-empty {
+    background-color: #fafbfd;
+    border-right: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .calendar-day-num {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #334155;
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    text-align: center;
+    border-radius: 50%;
+  }
+  .calendar-day-num.is-today {
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 700;
+  }
+  .cal-class-chip {
+    display: block;
+    font-size: 0.72rem;
+    padding: 4px 6px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    text-decoration: none;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-left: 3px solid;
+    transition: transform 0.1s ease;
+  }
+  .cal-class-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  }
+  .cal-chip-scheduled {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border-left-color: #0284c7;
+  }
+  .cal-chip-joinable {
+    background-color: #dcfce7;
+    color: #15803d;
+    border-left-color: #16a34a;
+    font-weight: 600;
+  }
+  .cal-chip-live {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border-left-color: #dc2626;
+    font-weight: 700;
+  }
+  .cal-chip-completed {
+    background-color: #f1f5f9;
+    color: #475569;
+    border-left-color: #94a3b8;
+  }
+  .cal-chip-cancelled {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border-left-color: #ef4444;
+    text-decoration: line-through;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header Bar -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h2 class="fw-bold mb-0">My Class Schedule</h2>
+        <span class="badge badge-role-student">Student Hub</span>
+      </div>
+      <p class="text-secondary mb-0">Interactive timetable of all your authorized live sessions and upcoming lectures.</p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'student:classes' %}" class="btn btn-outline-primary d-flex align-items-center gap-2">
+        <i class="bi bi-list-ul"></i>
+        <span>My Classes List</span>
+      </a>
+      <a href="{% url 'student:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Calendar Controls & Navigation Bar -->
+  <div class="card card-modern p-3 mb-4 bg-white shadow-sm">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+      <div class="d-flex align-items-center gap-2">
+        <h3 class="h4 fw-bold mb-0 text-dark">{{ month_name }} {{ year }}</h3>
+        <span class="badge bg-light text-secondary border ms-2">{{ total_month_classes }} Scheduled Class{{ total_month_classes|pluralize:"es" }}</span>
+      </div>
+
+      <!-- Month Stepper -->
+      <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'student:calendar' %}?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline-secondary btn-sm" title="Previous Month">
+          <i class="bi bi-chevron-left"></i> Previous
+        </a>
+        <a href="{% url 'student:calendar' %}" class="btn btn-outline-primary btn-sm px-3" title="Jump to Current Month">
+          Today
+        </a>
+        <a href="{% url 'student:calendar' %}?year={{ next_year }}&month={{ next_month }}" class="btn btn-outline-secondary btn-sm" title="Next Month">
+          Next <i class="bi bi-chevron-right"></i>
+        </a>
+      </div>
+
+      <!-- Legend -->
+      <div class="d-flex flex-wrap gap-2 small">
+        <span class="badge cal-chip-live"><i class="bi bi-circle-fill" style="font-size: 0.4rem;"></i> LIVE — Join Now</span>
+        <span class="badge cal-chip-joinable"><i class="bi bi-circle-fill" style="font-size: 0.4rem;"></i> Join Window Open</span>
+        <span class="badge cal-chip-scheduled"><i class="bi bi-circle-fill" style="font-size: 0.4rem;"></i> Upcoming</span>
+        <span class="badge cal-chip-completed"><i class="bi bi-circle-fill" style="font-size: 0.4rem;"></i> Completed</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Calendar Matrix -->
+  <div class="card card-modern border-0 shadow-sm p-0 overflow-hidden mb-4">
+    <div class="table-responsive">
+      <table class="table calendar-table mb-0">
+        <thead>
+          <tr>
+            <th class="text-center">Sun</th>
+            <th class="text-center">Mon</th>
+            <th class="text-center">Tue</th>
+            <th class="text-center">Wed</th>
+            <th class="text-center">Thu</th>
+            <th class="text-center">Fri</th>
+            <th class="text-center">Sat</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for week in month_weeks %}
+            <tr>
+              {% for day in week %}
+                {% if day == 0 %}
+                  <td class="calendar-day-empty"></td>
+                {% else %}
+                  <td class="calendar-day-cell">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="calendar-day-num {% if today.year == year and today.month == month and today.day == day %}is-today{% endif %}">
+                        {{ day }}
+                      </span>
+                    </div>
+
+                    <!-- Daily Classes List -->
+                    {% for item in classes_by_day.items %}
+                      {% if item.0 == day %}
+                        {% for c in item.1 %}
+                          {% if c.status == 'LIVE' %}
+                            <a href="{% url 'live_room:detail' c.room_code %}" class="cal-class-chip cal-chip-live" title="LIVE NOW: {{ c.title }} with {{ c.teacher.get_full_name|default:c.teacher.username }}">
+                              <span class="spinner-grow spinner-grow-sm me-1" style="width: 0.35rem; height: 0.35rem;"></span>
+                              <strong>{{ c.scheduled_time|time:'g:i A' }}</strong> {{ c.title|truncatechars:16 }}
+                            </a>
+                          {% elif c.is_within_join_window %}
+                            <a href="{% url 'live_room:detail' c.room_code %}" class="cal-class-chip cal-chip-joinable" title="Join Window Open: {{ c.title }} with {{ c.teacher.get_full_name|default:c.teacher.username }}">
+                              <i class="bi bi-door-open me-1"></i>
+                              <strong>{{ c.scheduled_time|time:'g:i A' }}</strong> {{ c.title|truncatechars:16 }}
+                            </a>
+                          {% elif c.status == 'SCHEDULED' %}
+                            <a href="{% url 'live_room:detail' c.room_code %}" class="cal-class-chip cal-chip-scheduled" title="Scheduled: {{ c.title }} with {{ c.teacher.get_full_name|default:c.teacher.username }}">
+                              <strong>{{ c.scheduled_time|time:'g:i A' }}</strong> {{ c.title|truncatechars:16 }}
+                            </a>
+                          {% elif c.status == 'COMPLETED' %}
+                            <span class="cal-class-chip cal-chip-completed" title="Ended: {{ c.title }}">
+                              <strong>{{ c.scheduled_time|time:'g:i A' }}</strong> {{ c.title|truncatechars:16 }}
+                            </span>
+                          {% else %}
+                            <span class="cal-class-chip cal-chip-cancelled" title="Cancelled: {{ c.title }}">
+                              {{ c.title|truncatechars:16 }}
+                            </span>
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+                    {% endfor %}
+                  </td>
+                {% endif %}
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

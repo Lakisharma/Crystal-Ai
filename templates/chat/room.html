@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Discussion - {{ classroom.name }} - LiveClass{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3 pb-3 border-bottom">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h3 class="fw-bold mb-0">Classroom Discussion</h3>
+        <span class="badge bg-primary-subtle text-primary">{{ classroom.code }}</span>
+      </div>
+      <p class="text-secondary small mb-0">
+        Classroom: <a href="{% url 'classrooms:detail' classroom.id %}" class="fw-semibold text-decoration-none">{{ classroom.name }}</a>
+      </p>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{% url 'classrooms:detail' classroom.id %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Classroom
+      </a>
+      <a href="{% url 'attendance:classroom_sessions' classroom.id %}" class="btn btn-outline-success btn-sm">
+        <i class="bi bi-calendar-check me-1"></i> Attendance
+      </a>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="chat-container">
+        <!-- Chat Header -->
+        <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <div class="p-2 rounded-circle bg-primary bg-opacity-10 text-primary">
+              <i class="bi bi-chat-quote-fill"></i>
+            </div>
+            <div>
+              <div class="fw-bold small">{{ classroom.name }}</div>
+              <small class="text-muted"><span class="badge bg-success-subtle text-success p-1 px-2">Live Stream Active</span> • {{ classroom.student_count }} Members</small>
+            </div>
+          </div>
+          <span class="text-secondary small"><i class="bi bi-shield-check text-success me-1"></i> Academic Q&A</span>
+        </div>
+
+        <!-- Chat Messages Scroll Area -->
+        <div class="chat-messages" id="chatMessages">
+          {% for msg in initial_messages %}
+            <div class="chat-bubble {% if msg.sender == user %}mine{% else %}theirs{% endif %}" data-msg-id="{{ msg.id }}">
+              <div class="d-flex justify-content-between align-items-center mb-1 gap-3">
+                <span class="sender-name small">
+                  {{ msg.sender.get_full_name|default:msg.sender.username }}
+                  {% if msg.sender.is_teacher %}
+                    <span class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">Teacher</span>
+                  {% endif %}
+                </span>
+                <span class="message-time small" style="font-size: 0.75rem;">
+                  {{ msg.created_at|date:"M d, H:i" }}
+                </span>
+              </div>
+              <div class="message-text">{{ msg.message }}</div>
+            </div>
+          {% empty %}
+            <div class="text-center text-muted py-5" id="emptyPlaceholder">
+              <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary opacity-50"></i>
+              <p class="mb-0">No messages yet. Start the classroom discussion!</p>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Chat Input Bar -->
+        <div class="p-3 border-top bg-white">
+          <form id="chatForm" class="d-flex gap-2">
+            <input type="text" id="chatInput" class="form-control" placeholder="Type an academic question or message..." autocomplete="off" required>
+            <button type="submit" class="btn btn-primary-gradient px-4 d-flex align-items-center gap-1" id="sendBtn">
+              <span>Send</span> <i class="bi bi-send-fill"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const classroomId = {{ classroom.id }};
+  const currentUserId = {{ user.id }};
+  const chatMessages = document.getElementById('chatMessages');
+  const chatForm = document.getElementById('chatForm');
+  const chatInput = document.getElementById('chatInput');
+  const emptyPlaceholder = document.getElementById('emptyPlaceholder');
+
+  let lastMessageId = 0;
+  const existingBubbles = chatMessages.querySelectorAll('.chat-bubble');
+  if (existingBubbles.length > 0) {
+    const lastBubble = existingBubbles[existingBubbles.length - 1];
+    lastMessageId = parseInt(lastBubble.getAttribute('data-msg-id') || 0, 10);
+  }
+
+  function scrollToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  scrollToBottom();
+
+  function appendMessage(msg) {
+    if (emptyPlaceholder) {
+      emptyPlaceholder.style.display = 'none';
+    }
+    const isMine = msg.sender.id === currentUserId;
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble ${isMine ? 'mine' : 'theirs'}`;
+    bubble.setAttribute('data-msg-id', msg.id);
+
+    const teacherBadge = msg.is_sender_teacher ? '<span class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">Teacher</span>' : '';
+    const senderName = msg.sender.first_name ? `${msg.sender.first_name} ${msg.sender.last_name || ''}` : msg.sender.username;
+
+    bubble.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center mb-1 gap-3">
+        <span class="sender-name small">
+          ${escapeHtml(senderName)} ${teacherBadge}
+        </span>
+        <span class="message-time small" style="font-size: 0.75rem;">
+          ${msg.created_at_formatted || 'Just now'}
+        </span>
+      </div>
+      <div class="message-text">${escapeHtml(msg.message)}</div>
+    `;
+    chatMessages.appendChild(bubble);
+    lastMessageId = Math.max(lastMessageId, msg.id);
+    scrollToBottom();
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Poll for new messages every 3 seconds
+  setInterval(async () => {
+    try {
+      const url = `{% url 'chat:api_messages' %}?classroom=${classroomId}&since_id=${lastMessageId}`;
+      const res = await fetch(url, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const results = data.results || data;
+        if (Array.isArray(results)) {
+          results.forEach(msg => {
+            if (msg.id > lastMessageId) {
+              appendMessage(msg);
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.error('Chat polling error:', e);
+    }
+  }, 3000);
+
+  // Send message handler
+  chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    chatInput.value = '';
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.disabled = true;
+
+    try {
+      const res = await fetch("{% url 'chat:api_messages' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+          classroom: classroomId,
+          message: text,
+        })
+      });
+
+      if (res.ok) {
+        const newMsg = await res.json();
+        appendMessage(newMsg);
+      } else {
+        alert('Failed to send message. Please verify connection.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error sending message.');
+    } finally {
+      sendBtn.disabled = false;
+      chatInput.focus();
+    }
+  });
+});
+</script>
+{% endblock %}

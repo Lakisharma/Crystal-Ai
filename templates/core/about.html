@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About - LiveClass Platform{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <div class="card card-modern p-5 border-0 shadow">
+        <h1 class="fw-bold mb-3">About <span class="brand-gradient">LiveClass</span></h1>
+        <p class="lead text-secondary mb-4">
+          LiveClass is an enterprise-grade virtual learning ecosystem engineered for schools, universities, and academic coaching centers.
+        </p>
+
+        <h5 class="fw-bold mt-4 mb-2">Our Philosophy: Browser-First Web Access</h5>
+        <p class="text-secondary">
+          Students and teachers should never be blocked by app stores, device operating system incompatibilities, or complicated installations. LiveClass runs entirely in standard desktop and laptop browsers with lightning performance.
+        </p>
+
+        <div class="row g-4 my-3">
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded-3">
+              <h6 class="fw-bold text-primary"><i class="bi bi-person-workspace me-2"></i> For Instructors</h6>
+              <p class="small text-secondary mb-0">Create courses, manage timetable schedules, take roll call in seconds, and lead academic discussion forums.</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded-3">
+              <h6 class="fw-bold text-info"><i class="bi bi-backpack me-2"></i> For Students</h6>
+              <p class="small text-secondary mb-0">Join classrooms with a simple 6-character code, keep track of attendance stats, and collaborate in class chat.</p>
+            </div>
+          </div>
+        </div>
+
+        <h5 class="fw-bold mt-4 mb-2">Technical Foundations</h5>
+        <ul class="text-secondary small">
+          <li class="mb-1"><strong>Python & Django 5:</strong> Rock-solid security, custom user authentication, and ORM abstractions.</li>
+          <li class="mb-1"><strong>Django REST Framework:</strong> Clean API endpoints for modern frontend interoperability.</li>
+          <li class="mb-1"><strong>Bootstrap 5 & Vanilla JS:</strong> Fast, mobile-responsive, zero-heavy-frontend-bloat design.</li>
+          <li class="mb-1"><strong>PostgreSQL Ready:</strong> Seamless switch from local SQLite to cloud-hosted PostgreSQL with zero code changes.</li>
+        </ul>
+
+        <div class="mt-4 pt-3 border-top d-flex gap-3">
+          <a href="{% url 'accounts:teacher_register' %}" class="btn btn-primary-gradient">Join as Teacher</a>
+          <a href="{% url 'accounts:student_register' %}" class="btn btn-outline-primary">Join as Student</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

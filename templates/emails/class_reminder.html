@@ -1,0 +1,24 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_title %}Reminder: {{ live_class.title }} starts soon{% endblock %}
+
+{% block email_content %}
+  <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Upcoming Class Reminder</h2>
+  
+  <p>Hello,</p>
+  <p>This is a quick reminder that your live class session <strong>"{{ live_class.title }}"</strong> is scheduled to start in approximately <strong>{{ minutes_before }} minutes</strong>.</p>
+
+  <div class="info-box" style="border-left-color: #f59e0b;">
+    <div class="info-row"><span class="info-label">Class Title:</span> <span class="info-value">{{ live_class.title }}</span></div>
+    <div class="info-row"><span class="info-label">Instructor:</span> <span class="info-value">{{ live_class.teacher.get_full_name|default:live_class.teacher.username }}</span></div>
+    <div class="info-row"><span class="info-label">Start Time:</span> <span class="info-value">{{ live_class.scheduled_time|time:"g:i A" }} ({{ live_class.scheduled_date|date:"M j, Y" }})</span></div>
+    <div class="info-row"><span class="info-label">Duration:</span> <span class="info-value">{{ live_class.duration }} minutes</span></div>
+    <div class="info-row"><span class="info-label">Room Code:</span> <span class="info-value" style="font-family: monospace; font-weight: 700; color: #2563eb;">{{ live_class.room_code }}</span></div>
+  </div>
+
+  <p>Please ensure your microphone, camera, and internet connection are ready before the session begins.</p>
+
+  <div style="text-align: center; margin: 24px 0;">
+    <a href="{{ join_url }}" class="btn-action">Enter Live Classroom</a>
+  </div>
+{% endblock %}

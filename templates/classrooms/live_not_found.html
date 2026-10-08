@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Classroom Not Found - TeachLive{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+      
+      <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5">
+        <div class="mb-4">
+          <span class="p-3 rounded-circle bg-warning bg-opacity-10 text-warning d-inline-flex">
+            <i class="bi bi-question-circle-fill fs-1"></i>
+          </span>
+        </div>
+
+        <h2 class="h3 fw-bold text-navy mb-2">Classroom Not Found</h2>
+        <p class="text-muted mb-4">
+          We could not find any active or scheduled live class matching the room code:
+          <br>
+          <code class="fs-5 fw-bold text-danger bg-light px-3 py-1 rounded-2 mt-2 d-inline-block">{{ room_code }}</code>
+        </p>
+
+        <p class="small text-muted mb-4">
+          Please double-check the room code with your teacher or check your student dashboard for ongoing sessions.
+        </p>
+
+        <div class="d-flex justify-content-center gap-2">
+          <a href="{% url 'student:dashboard' %}" class="btn btn-primary px-4 py-2 rounded-3 fw-semibold">
+            <i class="bi bi-speedometer2 me-1"></i> Student Dashboard
+          </a>
+          <a href="{% url 'core:home' %}" class="btn btn-outline-secondary px-4 py-2 rounded-3">
+            Back to Home
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

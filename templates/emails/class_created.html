@@ -1,0 +1,25 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_title %}Live Class Created: {{ live_class.title }}{% endblock %}
+
+{% block email_content %}
+  <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Live Class Scheduled Successfully</h2>
+  
+  <p>Hello Professor {{ live_class.teacher.get_full_name|default:live_class.teacher.username }},</p>
+  <p>Your upcoming live class session <strong>"{{ live_class.title }}"</strong> has been created and scheduled in TeachLive.</p>
+
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Class Title:</span> <span class="info-value">{{ live_class.title }}</span></div>
+    <div class="info-row"><span class="info-label">Subject:</span> <span class="info-value">{{ live_class.subject }}</span></div>
+    <div class="info-row"><span class="info-label">Scheduled Date:</span> <span class="info-value">{{ live_class.scheduled_date|date:"l, F j, Y" }}</span></div>
+    <div class="info-row"><span class="info-label">Scheduled Time:</span> <span class="info-value">{{ live_class.scheduled_time|time:"g:i A" }}</span></div>
+    <div class="info-row"><span class="info-label">Duration:</span> <span class="info-value">{{ live_class.duration }} minutes</span></div>
+    <div class="info-row"><span class="info-label">Room Code:</span> <span class="info-value" style="font-family: monospace; font-weight: 700; color: #2563eb;">{{ live_class.room_code }}</span></div>
+  </div>
+
+  <p>Share the Room Code <strong>{{ live_class.room_code }}</strong> with your enrolled students so they can join the live room at the scheduled time.</p>
+
+  <div style="text-align: center; margin: 24px 0;">
+    <a href="{{ class_url }}" class="btn-action">View Class Details & Room</a>
+  </div>
+{% endblock %}

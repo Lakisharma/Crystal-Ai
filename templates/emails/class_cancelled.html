@@ -1,0 +1,24 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_title %}Class Cancelled: {{ live_class.title }}{% endblock %}
+
+{% block email_content %}
+  <h2 style="color: #ef4444; margin-top: 0; font-size: 20px;">Live Class Cancelled</h2>
+  
+  <p>Hello,</p>
+  <p>Please be advised that the scheduled live class <strong>"{{ live_class.title }}"</strong> has been cancelled by <strong>{{ cancelled_by_name }}</strong>.</p>
+
+  <div class="info-box" style="border-left-color: #ef4444;">
+    <div class="info-row"><span class="info-label">Class Title:</span> <span class="info-value">{{ live_class.title }}</span></div>
+    <div class="info-row"><span class="info-label">Instructor:</span> <span class="info-value">{{ live_class.teacher.get_full_name|default:live_class.teacher.username }}</span></div>
+    <div class="info-row"><span class="info-label">Subject:</span> <span class="info-value">{{ live_class.subject }}</span></div>
+    <div class="info-row"><span class="info-label">Was Scheduled For:</span> <span class="info-value">{{ live_class.scheduled_date|date:"l, F j, Y" }} at {{ live_class.scheduled_time|time:"g:i A" }}</span></div>
+    <div class="info-row"><span class="info-label">Status:</span> <span class="info-value" style="color: #ef4444; font-weight: 700;">CANCELLED</span></div>
+  </div>
+
+  <p>This class will not take place. If a rescheduled date is announced, you will receive an updated notification.</p>
+
+  <div style="text-align: center; margin: 24px 0;">
+    <a href="{{ dashboard_url }}" class="btn-action" style="background: #334155;">Go to Dashboard</a>
+  </div>
+{% endblock %}

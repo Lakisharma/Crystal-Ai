@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"My Students - TeachLive" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .metric-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+    border-radius: 1rem;
+  }
+  .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.08) !important;
+  }
+  .student-avatar {
+    width: 42px;
+    height: 42px;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  .student-avatar-placeholder {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .filter-pill {
+    transition: all 0.15s ease-in-out;
+    text-decoration: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:teacher_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+      <li class="breadcrumb-item active" aria-current="page">My Students</li>
+    </ol>
+  </nav>
+
+  <!-- Header Card -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+            <i class="bi bi-people-fill me-1"></i> Student Directory
+          </span>
+        </div>
+        <h3 class="fw-bold text-dark mb-1">Teacher Student Management</h3>
+        <p class="text-muted small mb-0">
+          Manage all students connected to your classes, track real-time attendance, review access requests, and oversee enrollment histories.
+        </p>
+      </div>
+
+      <div class="d-flex gap-2">
+        <a href="{% url 'classrooms:teacher_classes' %}" class="btn btn-outline-secondary rounded-pill px-3 fw-semibold">
+          <i class="bi bi-easel2 me-1"></i> View My Classes
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 Real DB Summary Cards -->
+  <div class="row g-3 mb-4">
+    <!-- Card 1: Total Students -->
+    <div class="col-6 col-md-4 col-xl-2-4" style="flex: 0 0 auto; width: 20%;">
+      <div class="card metric-card shadow-sm p-3 bg-white h-100 border-start border-4 border-primary">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-muted small fw-semibold text-uppercase">Total Students</span>
+          <div class="p-2 rounded-3 bg-primary bg-opacity-10 text-primary">
+            <i class="bi bi-people fs-5"></i>
+          </div>
+        </div>
+        <h3 class="fw-bold text-dark mb-0">{{ total_students }}</h3>
+        <span class="text-muted small">Connected to your classes</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Active Students -->
+    <div class="col-6 col-md-4 col-xl-2-4" style="flex: 0 0 auto; width: 20%;">
+      <div class="card metric-card shadow-sm p-3 bg-white h-100 border-start border-4 border-success">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-muted small fw-semibold text-uppercase">Active Students</span>
+          <div class="p-2 rounded-3 bg-success bg-opacity-10 text-success">
+            <i class="bi bi-person-check fs-5"></i>
+          </div>
+        </div>
+        <h3 class="fw-bold text-success mb-0">{{ active_students }}</h3>
+        <span class="text-muted small">Enrolled in active courses</span>
+      </div>
+    </div>
+
+    <!-- Card 3: In Live Classes -->
+    <div class="col-6 col-md-4 col-xl-2-4" style="flex: 0 0 auto; width: 20%;">
+      <div class="card metric-card shadow-sm p-3 bg-white h-100 border-start border-4 border-danger">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-muted small fw-semibold text-uppercase">In Live Classes</span>
+          <div class="p-2 rounded-3 bg-danger bg-opacity-10 text-danger">
+            <i class="bi bi-broadcast fs-5"></i>
+          </div>
+        </div>
+        <h3 class="fw-bold text-danger mb-0">{{ students_in_live_classes }}</h3>
+        <span class="text-muted small">Participating right now</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Pending Invitations -->
+    <div class="col-6 col-md-4 col-xl-2-4" style="flex: 0 0 auto; width: 20%;">
+      <div class="card metric-card shadow-sm p-3 bg-white h-100 border-start border-4 border-info">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-muted small fw-semibold text-uppercase">Invitations</span>
+          <div class="p-2 rounded-3 bg-info bg-opacity-10 text-info">
+            <i class="bi bi-envelope-paper fs-5"></i>
+          </div>
+        </div>
+        <h3 class="fw-bold text-info mb-0">{{ pending_invitations }}</h3>
+        <span class="text-muted small">Awaiting student accept</span>
+      </div>
+    </div>
+
+    <!-- Card 5: Pending Access Requests -->
+    <div class="col-6 col-md-4 col-xl-2-4" style="flex: 0 0 auto; width: 20%;">
+      <div class="card metric-card shadow-sm p-3 bg-white h-100 border-start border-4 border-warning">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-muted small fw-semibold text-uppercase">Access Requests</span>
+          <div class="p-2 rounded-3 bg-warning bg-opacity-10 text-warning">
+            <i class="bi bi-clock-history fs-5"></i>
+          </div>
+        </div>
+        <h3 class="fw-bold text-warning mb-0">{{ pending_access_requests }}</h3>
+        <span class="text-muted small">Awaiting your approval</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="row g-3 align-items-center justify-content-between mb-3">
+      <div class="col-md-6 col-lg-5">
+        <form method="get" class="d-flex gap-2">
+          {% if selected_filter and selected_filter != 'all' %}
+            <input type="hidden" name="filter" value="{{ selected_filter }}">
+          {% endif %}
+          <div class="input-group">
+            <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" name="q" value="{{ search_query }}" class="form-control bg-light border-0" placeholder="Search by name, email, or username...">
+          </div>
+          <button type="submit" class="btn btn-primary rounded-pill px-3">Search</button>
+          {% if search_query %}
+            <a href="?{% if selected_filter %}filter={{ selected_filter }}{% endif %}" class="btn btn-outline-secondary rounded-pill px-2">Clear</a>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="col-md-6 col-lg-7 text-md-end">
+        <span class="text-muted small me-2">Showing {{ page_obj.start_index|default:0 }} - {{ page_obj.end_index|default:0 }} of {{ page_obj.paginator.count|default:0 }} students</span>
+      </div>
+    </div>
+
+    <!-- Filter Pills (8 Options) -->
+    <div class="d-flex flex-wrap gap-2 pt-2 border-top">
+      <a href="?filter=all{% if search_query %}&q={{ search_query }}{% endif %}"
+         class="btn btn-sm rounded-pill filter-pill {% if selected_filter == 'all' or not selected_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        All Students
+      </a>
+      <a href="?filter=active{% if search_query %}&q={{ search_query }}{% endif %}"
+         class="btn btn-sm rounded-pill filter-pill {% if selected_filter == 'active' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        Active
+      </a>
+      <a href="?filter=inactive{% if search_query %}&q={{ search_query }}{% endif %}"
+         class="btn btn-sm rounded-pill filter-pill {% if selected_filter == 'inactive' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        Inactive
+      </a>
+      <a href="?filter=has_active_classes{% if search_query %}&q={{ search_query }}{% endif %}"
+         class="btn btn-sm rounded-pill filter-pill {% if selected_filter == 'has_active_classes' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        Has Active Classes
+      </a>
+      <a href="?filter=no_active_classes{% if search_query %}&q={{ search_query }}{% endif %}"
+         class="btn btn-sm rounded-pill filter-pill {% if selected_filter == 'no_active_classes' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        No Active Classes
+      </a>
+      <a href="?filter=recently_joined{% if search_query %}&q={{ search_query }}{% endif %}"
+         class="btn btn-sm rounded-pill filter-pill {% if selected_filter == 'recently_joined' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        Recently Joined
+      </a>
+      <a href="?filter=pending_access{% if search_query %}&q={{ search_query }}{% endif %}"
+         class="btn btn-sm rounded-pill filter-pill {% if selected_filter == 'pending_access' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        Pending Access ({{ pending_access_requests }})
+      </a>
+      <a href="?filter=removed{% if search_query %}&q={{ search_query }}{% endif %}"
+         class="btn btn-sm rounded-pill filter-pill {% if selected_filter == 'removed' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        Removed / Revoked
+      </a>
+    </div>
+  </div>
+
+  <!-- Students Directory Table -->
+  <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">Student</th>
+            <th>Email</th>
+            <th>Enrolled Classes</th>
+            <th>Attendance Rate</th>
+            <th>Status</th>
+            <th class="text-end pe-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in student_items %}
+            <tr>
+              <td class="ps-4">
+                <div class="d-flex align-items-center gap-3">
+                  {% if item.student.avatar_url %}
+                    <img src="{{ item.student.avatar_url }}" alt="{{ item.student.username }}" class="student-avatar border border-primary border-opacity-25">
+                  {% else %}
+                    <div class="student-avatar-placeholder bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
+                      {{ item.student.username|make_list|first|upper }}
+                    </div>
+                  {% endif %}
+                  <div>
+                    <a href="{% url 'classrooms:teacher_student_detail' item.student.id %}" class="fw-bold text-dark text-decoration-none d-block">
+                      {{ item.student.get_full_name|default:item.student.username }}
+                    </a>
+                    <span class="text-muted small">@{{ item.student.username }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="text-secondary small">{{ item.student.email|default:"No email registered" }}</span>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border px-2 py-1">
+                  <i class="bi bi-easel me-1 text-primary"></i> {{ item.enrolled_classes_count }} active
+                </span>
+                {% if item.completed_classes_count > 0 %}
+                  <span class="badge bg-light text-muted border px-2 py-1 ms-1">
+                    {{ item.completed_classes_count }} completed
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-2" style="max-width: 150px;">
+                  <div class="progress flex-grow-1" style="height: 6px;">
+                    <div class="progress-bar {% if item.attendance_percentage >= 75 %}bg-success{% elif item.attendance_percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                         role="progressbar"
+                         style="width: {{ item.attendance_percentage }}%;"
+                         aria-valuenow="{{ item.attendance_percentage }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100"></div>
+                  </div>
+                  <span class="small fw-semibold text-secondary">{{ item.attendance_percentage }}%</span>
+                </div>
+              </td>
+              <td>
+                {% if item.status == 'ACTIVE' %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                    <i class="bi bi-check-circle me-1"></i> Active
+                  </span>
+                {% elif item.status == 'REVOKED' %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                    <i class="bi bi-slash-circle me-1"></i> Removed
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary px-2 py-1">
+                    Inactive
+                  </span>
+                {% endif %}
+
+                {% if item.pending_access_count > 0 %}
+                  <span class="badge bg-warning text-dark ms-1" title="Pending access request">
+                    <i class="bi bi-clock me-1"></i> {{ item.pending_access_count }} Req
+                  </span>
+                {% endif %}
+                {% if item.pending_invite_count > 0 %}
+                  <span class="badge bg-info-subtle text-info border border-info-subtle ms-1" title="Invited">
+                    <i class="bi bi-envelope me-1"></i> Invited
+                  </span>
+                {% endif %}
+              </td>
+              <td class="text-end pe-4">
+                <a href="{% url 'classrooms:teacher_student_detail' item.student.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                  <i class="bi bi-person-lines-fill me-1"></i> View Profile
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-5 text-muted">
+                <div class="p-4">
+                  <i class="bi bi-people display-5 text-secondary opacity-50 d-block mb-3"></i>
+                  <h5 class="fw-semibold text-dark mb-1">No students found</h5>
+                  <p class="text-muted small mb-3">No student records match your current search query or filter selection.</p>
+                  {% if search_query or selected_filter != 'all' %}
+                    <a href="{% url 'classrooms:teacher_students' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                      Reset Filters
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+      <div class="p-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="text-muted small">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_filter %}&filter={{ selected_filter }}{% endif %}">Previous</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item"><a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_filter %}&filter={{ selected_filter }}{% endif %}">{{ num }}</a></li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_filter %}&filter={{ selected_filter }}{% endif %}">Next</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+          {% endif %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

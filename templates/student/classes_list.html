@@ -1,0 +1,463 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Classes - TeachLive Student{% endblock %}
+{% block meta_description %}Explore your enrolled live sessions, invitations, upcoming classes, and completed lectures on TeachLive.{% endblock %}
+
+{% block extra_css %}
+<meta name="robots" content="noindex, nofollow">
+<style>
+  .card-hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.08) !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header Card -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <a href="{% url 'student:dashboard' %}" class="text-secondary small text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i> Dashboard
+          </a>
+        </div>
+        <h3 class="fw-bold text-dark mb-1">My Live Classes</h3>
+        <p class="text-muted small mb-0">
+          Browse sessions you are authorized to attend: live sessions, today's schedule, upcoming classes, and completed archives.
+        </p>
+      </div>
+
+      <div class="d-flex gap-2">
+        <form method="get" class="d-flex gap-2">
+          {% if active_tab != 'all' %}
+            <input type="hidden" name="tab" value="{{ active_tab }}">
+          {% endif %}
+          <div class="input-group">
+            <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" name="q" value="{{ search_query }}" class="form-control bg-light border-0" placeholder="Search title, teacher, subject...">
+          </div>
+          <button type="submit" class="btn btn-primary rounded-pill px-3">Search</button>
+          {% if search_query %}
+            <a href="{% url 'student:classes' %}{% if active_tab != 'all' %}?tab={{ active_tab }}{% endif %}" class="btn btn-outline-secondary rounded-pill px-2">Clear</a>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-pills mb-4 gap-2">
+    <li class="nav-item">
+      <a class="nav-link rounded-pill px-4 {% if active_tab == 'all' or not active_tab %}active{% endif %}" href="?tab=all{% if search_query %}&q={{ search_query }}{% endif %}">
+        All Classes
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link rounded-pill px-4 {% if active_tab == 'live' %}active{% endif %}" href="?tab=live{% if search_query %}&q={{ search_query }}{% endif %}">
+        <span class="spinner-grow spinner-grow-sm text-danger me-1"></span> Live Now ({{ live_classes.count }})
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link rounded-pill px-4 {% if active_tab == 'today' %}active{% endif %}" href="?tab=today{% if search_query %}&q={{ search_query }}{% endif %}">
+        <i class="bi bi-calendar2-day me-1"></i> Today ({{ today_classes.count }})
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link rounded-pill px-4 {% if active_tab == 'upcoming' %}active{% endif %}" href="?tab=upcoming{% if search_query %}&q={{ search_query }}{% endif %}">
+        <i class="bi bi-calendar-event me-1"></i> Upcoming ({{ upcoming_classes.count }})
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link rounded-pill px-4 {% if active_tab == 'invitations' %}active{% endif %}" href="?tab=invitations{% if search_query %}&q={{ search_query }}{% endif %}">
+        <i class="bi bi-envelope-paper me-1"></i> Invitations ({{ invited_classes|length }})
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link rounded-pill px-4 {% if active_tab == 'requests' %}active{% endif %}" href="?tab=requests{% if search_query %}&q={{ search_query }}{% endif %}">
+        <i class="bi bi-clock-history me-1"></i> Pending Requests ({{ pending_requests_count }})
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link rounded-pill px-4 {% if active_tab == 'completed' %}active{% endif %}" href="?tab=completed{% if search_query %}&q={{ search_query }}{% endif %}">
+        <i class="bi bi-check2-circle me-1"></i> Completed ({{ completed_total_count }})
+      </a>
+    </li>
+  </ul>
+
+  <!-- 1. LIVE NOW SECTION -->
+  {% if active_tab == 'all' or active_tab == 'live' %}
+    {% if live_classes %}
+      <div class="mb-5">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="spinner-grow spinner-grow-sm text-danger" role="status"></span>
+          <h4 class="fw-bold mb-0 text-dark">LIVE NOW</h4>
+          <span class="badge bg-danger text-white rounded-pill px-2 py-1 ms-1">{{ live_classes.count }} in progress</span>
+        </div>
+        <div class="row g-4">
+          {% for class in live_classes %}
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card border-0 shadow-sm rounded-4 h-100 bg-white overflow-hidden border-top border-4 border-danger card-hover-lift">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                  <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <span class="badge bg-danger px-3 py-1 rounded-pill fw-semibold">&bull; LIVE</span>
+                      <span class="badge bg-light text-dark font-monospace border">{{ class.room_code }}</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">{{ class.title }}</h5>
+                    <p class="text-muted small mb-2"><i class="bi bi-book me-1"></i> {{ class.subject }}</p>
+                    <div class="small text-secondary mb-3">
+                      <i class="bi bi-person me-1"></i> Prof. {{ class.teacher.get_full_name|default:class.teacher.username }}
+                    </div>
+                    <div class="small text-muted mb-3">
+                      <i class="bi bi-clock me-1"></i> Started at {{ class.started_at|default:class.created_at|time:"H:i" }}
+                    </div>
+                  </div>
+                  <div>
+                    <a href="{% url 'live_room:detail' room_code=class.room_code %}" class="btn btn-danger rounded-pill w-100 fw-bold shadow-sm">
+                      <i class="bi bi-box-arrow-in-right me-1"></i> Join Class
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% elif active_tab == 'live' %}
+      <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white mb-4">
+        <i class="bi bi-broadcast text-secondary display-4 mb-2"></i>
+        <h5 class="fw-bold text-dark">No live classes right now</h5>
+        <p class="text-muted small mb-0">Check the Today or Upcoming tab for scheduled sessions.</p>
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <!-- 2. TODAY'S CLASSES SECTION -->
+  {% if active_tab == 'all' or active_tab == 'today' %}
+    {% if today_classes %}
+      <div class="mb-5">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-calendar2-day text-primary fs-5"></i>
+          <h4 class="fw-bold mb-0 text-dark">Today's Classes</h4>
+          <span class="badge bg-primary text-white rounded-pill px-2 py-1 ms-1">{{ today_classes.count }} scheduled today</span>
+        </div>
+        <div class="row g-4">
+          {% for class in today_classes %}
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card border-0 shadow-sm rounded-4 h-100 bg-white overflow-hidden card-hover-lift {% if class.is_live %}border-top border-4 border-danger{% endif %}">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                  <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      {% if class.is_live %}
+                        <span class="badge bg-danger px-2 py-1 rounded-pill">&bull; LIVE</span>
+                      {% elif class.is_completed %}
+                        <span class="badge bg-secondary px-2 py-1 rounded-pill">COMPLETED</span>
+                      {% else %}
+                        <span class="badge bg-primary px-2 py-1 rounded-pill">TODAY</span>
+                      {% endif %}
+                      <span class="badge bg-light text-dark font-monospace border">{{ class.room_code }}</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">{{ class.title }}</h5>
+                    <p class="text-muted small mb-2"><i class="bi bi-book me-1"></i> {{ class.subject }}</p>
+                    <div class="small text-secondary mb-2">
+                      <i class="bi bi-person me-1"></i> Prof. {{ class.teacher.get_full_name|default:class.teacher.username }}
+                    </div>
+                    <div class="small text-muted mb-3">
+                      <i class="bi bi-clock me-1"></i> {{ class.scheduled_time|time:"H:i" }} &bull; {{ class.duration }}m
+                    </div>
+                  </div>
+                  <div>
+                    {% if class.is_live %}
+                      <a href="{% url 'live_room:detail' room_code=class.room_code %}" class="btn btn-danger rounded-pill w-100 fw-bold shadow-sm">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Join Live
+                      </a>
+                    {% elif class.is_completed %}
+                      <button class="btn btn-light rounded-pill w-100 text-muted" disabled>
+                        <i class="bi bi-check2-circle me-1"></i> Session Ended
+                      </button>
+                    {% else %}
+                      <a href="{% url 'live_room:detail' room_code=class.room_code %}" class="btn btn-outline-primary rounded-pill w-100 fw-semibold">
+                        <i class="bi bi-eye me-1"></i> View Room Details
+                      </a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% elif active_tab == 'today' %}
+      <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white mb-4">
+        <i class="bi bi-calendar-check text-secondary display-4 mb-2"></i>
+        <h5 class="fw-bold text-dark">No classes scheduled for today</h5>
+        <p class="text-muted small mb-0">Check upcoming sessions or browse the calendar.</p>
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <!-- 3. INVITATIONS SECTION -->
+  {% if active_tab == 'all' or active_tab == 'invitations' %}
+    {% if invited_classes %}
+      <div class="mb-5">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-envelope-paper text-primary fs-5"></i>
+          <h4 class="fw-bold mb-0 text-dark">Class Invitations</h4>
+          <span class="badge bg-primary text-white rounded-pill px-2 py-1 ms-1">{{ invited_classes|length }} pending</span>
+        </div>
+        <div class="row g-4">
+          {% for class in invited_classes %}
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card border-0 shadow-sm rounded-4 h-100 bg-white overflow-hidden border-top border-4 border-info card-hover-lift">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                  <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1 rounded-pill fw-semibold">
+                        <i class="bi bi-envelope-paper me-1"></i> INVITED
+                      </span>
+                      <span class="badge bg-light text-dark font-monospace border">{{ class.room_code }}</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">{{ class.title }}</h5>
+                    <p class="text-muted small mb-2"><i class="bi bi-book me-1"></i> {{ class.subject }}</p>
+                    <div class="small text-secondary mb-2">
+                      <i class="bi bi-person me-1"></i> Prof. {{ class.teacher.get_full_name|default:class.teacher.username }}
+                    </div>
+                    <div class="small text-muted mb-3">
+                      <i class="bi bi-calendar-event me-1"></i> {{ class.scheduled_date|date:"D, M d" }} at {{ class.scheduled_time|time:"H:i" }}
+                    </div>
+                  </div>
+                  <div>
+                    <div class="d-flex gap-2 mb-2">
+                      <form method="post" action="{% url 'student:class_accept' class.id %}" class="flex-grow-1">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success rounded-pill w-100 fw-semibold">
+                          <i class="bi bi-check-lg me-1"></i> Accept
+                        </button>
+                      </form>
+                      <form method="post" action="{% url 'student:class_decline' class.id %}" class="flex-grow-1" onsubmit="return confirm('Are you sure you want to decline this class invitation?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill w-100 fw-semibold">
+                          <i class="bi bi-x-lg me-1"></i> Decline
+                        </button>
+                      </form>
+                    </div>
+                    <a href="{% url 'student:class_detail' class.id %}" class="btn btn-sm btn-outline-secondary rounded-pill w-100">
+                      <i class="bi bi-eye me-1"></i> Class Details
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% elif active_tab == 'invitations' %}
+      <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white mb-4">
+        <i class="bi bi-envelope-open text-secondary display-4 mb-2"></i>
+        <h5 class="fw-bold text-dark">No pending class invitations</h5>
+        <p class="text-muted small mb-0">When an instructor invites you to a live class, it will appear here.</p>
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <!-- 3.5. PENDING ACCESS REQUESTS SECTION -->
+  {% if active_tab == 'all' or active_tab == 'requests' %}
+    {% if pending_requests %}
+      <div class="mb-5">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-clock-history text-warning fs-5"></i>
+          <h4 class="fw-bold mb-0 text-dark">Pending Access Requests</h4>
+          <span class="badge bg-warning text-dark rounded-pill px-2 py-1 ms-1">{{ pending_requests_count }} awaiting review</span>
+        </div>
+        <div class="row g-4">
+          {% for req in pending_requests %}
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card border-0 shadow-sm rounded-4 h-100 bg-white overflow-hidden border-top border-4 border-warning card-hover-lift">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                  <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <span class="badge bg-warning text-dark rounded-pill fw-semibold">
+                        <i class="bi bi-clock me-1"></i> PENDING REVIEW
+                      </span>
+                      <span class="badge bg-light text-dark font-monospace border">{{ req.live_class.room_code }}</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">{{ req.live_class.title }}</h5>
+                    <p class="text-muted small mb-2"><i class="bi bi-book me-1"></i> {{ req.live_class.subject }}</p>
+                    <div class="small text-secondary mb-2">
+                      <i class="bi bi-person me-1"></i> Prof. {{ req.live_class.teacher.get_full_name|default:req.live_class.teacher.username }}
+                    </div>
+                    <div class="small text-muted mb-2">
+                      <i class="bi bi-send me-1"></i> Requested: {{ req.created_at|date:"M d, Y H:i" }}
+                    </div>
+                    {% if req.request_note %}
+                      <div class="small text-secondary bg-light p-2 rounded-3 mb-3">
+                        <em>"{{ req.request_note }}"</em>
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <a href="{% url 'student:class_detail' req.live_class.id %}" class="btn btn-outline-secondary rounded-pill w-100 fw-semibold">
+                      <i class="bi bi-eye me-1"></i> View Class Info
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% elif active_tab == 'requests' %}
+      <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white mb-4">
+        <i class="bi bi-check-circle text-success display-4 mb-2"></i>
+        <h5 class="fw-bold text-dark">No pending access requests</h5>
+        <p class="text-muted small mb-0">You do not have any pending requests awaiting instructor approval.</p>
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <!-- 4. UPCOMING SECTION -->
+  {% if active_tab == 'all' or active_tab == 'upcoming' %}
+    {% if upcoming_classes %}
+      <div class="mb-5">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-calendar-event text-primary fs-5"></i>
+          <h4 class="fw-bold mb-0 text-dark">Upcoming Classes</h4>
+          <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 ms-1">{{ upcoming_classes.count }} scheduled</span>
+        </div>
+        <div class="row g-4">
+          {% for class in upcoming_classes %}
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card border-0 shadow-sm rounded-4 h-100 bg-white overflow-hidden card-hover-lift">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                  <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 rounded-pill fw-semibold">
+                        UPCOMING
+                      </span>
+                      <span class="badge bg-light text-dark font-monospace border">{{ class.room_code }}</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">{{ class.title }}</h5>
+                    <p class="text-muted small mb-2"><i class="bi bi-book me-1"></i> {{ class.subject }}</p>
+                    <div class="small text-secondary mb-2">
+                      <i class="bi bi-person me-1"></i> Prof. {{ class.teacher.get_full_name|default:class.teacher.username }}
+                    </div>
+                    <div class="small text-muted mb-3">
+                      <i class="bi bi-calendar3 me-1"></i> {{ class.scheduled_date|date:"D, M d" }} at {{ class.scheduled_time|time:"H:i" }} &bull; {{ class.duration }}m
+                    </div>
+                  </div>
+                  <div>
+                    <a href="{% url 'live_room:detail' room_code=class.room_code %}" class="btn btn-outline-primary rounded-pill w-100 fw-semibold">
+                      <i class="bi bi-eye me-1"></i> View Room Details
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% elif active_tab == 'upcoming' %}
+      <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white mb-4">
+        <i class="bi bi-calendar-x text-secondary display-4 mb-2"></i>
+        <h5 class="fw-bold text-dark">No upcoming scheduled classes</h5>
+        <p class="text-muted small mb-0">You have no upcoming classes scheduled at this time.</p>
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <!-- 5. COMPLETED SECTION WITH PAGINATION -->
+  {% if active_tab == 'all' or active_tab == 'completed' %}
+    {% if completed_classes %}
+      <div class="mb-4">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-check2-circle text-secondary fs-5"></i>
+          <h4 class="fw-bold mb-0 text-dark">Completed Classes</h4>
+          <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 ms-1">{{ completed_total_count }} ended</span>
+        </div>
+        <div class="row g-4">
+          {% for class in completed_classes %}
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card border-0 shadow-sm rounded-4 h-100 bg-white opacity-75 card-hover-lift">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                  <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <span class="badge bg-secondary px-2 py-1 rounded-pill">ENDED</span>
+                      <span class="badge bg-light text-muted font-monospace border">{{ class.room_code }}</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">{{ class.title }}</h5>
+                    <p class="text-muted small mb-2"><i class="bi bi-book me-1"></i> {{ class.subject }}</p>
+                    <div class="small text-secondary mb-2">
+                      <i class="bi bi-person me-1"></i> Prof. {{ class.teacher.get_full_name|default:class.teacher.username }}
+                    </div>
+                    <div class="small text-muted mb-3">
+                      <i class="bi bi-calendar-check me-1"></i> Completed on {{ class.ended_at|default:class.scheduled_date|date:"M d, Y" }}
+                    </div>
+                  </div>
+                  <div>
+                    <button class="btn btn-light rounded-pill w-100 text-muted" disabled>
+                      <i class="bi bi-lock me-1"></i> Session Concluded
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if is_paginated %}
+          <nav aria-label="Completed classes pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link rounded-pill px-3 me-2" href="?tab={% if active_tab %}{{ active_tab }}{% else %}completed{% endif %}&page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                    &laquo; Previous
+                  </a>
+                </li>
+              {% else %}
+                <li class="page-item disabled">
+                  <span class="page-link rounded-pill px-3 me-2">&laquo; Previous</span>
+                </li>
+              {% endif %}
+
+              <li class="page-item active">
+                <span class="page-link rounded-pill px-3 me-2">
+                  Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+              </li>
+
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link rounded-pill px-3" href="?tab={% if active_tab %}{{ active_tab }}{% else %}completed{% endif %}&page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                    Next &raquo;
+                  </a>
+                </li>
+              {% else %}
+                <li class="page-item disabled">
+                  <span class="page-link rounded-pill px-3">Next &raquo;</span>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+        {% endif %}
+
+      </div>
+    {% elif active_tab == 'completed' %}
+      <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white mb-4">
+        <i class="bi bi-journal-check text-secondary display-4 mb-2"></i>
+        <h5 class="fw-bold text-dark">No completed classes yet</h5>
+        <p class="text-muted small mb-0">Classes you attend will be archived here once concluded.</p>
+      </div>
+    {% endif %}
+  {% endif %}
+
+</div>
+{% endblock %}

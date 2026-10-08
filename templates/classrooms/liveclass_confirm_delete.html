@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Class: {{ live_class.title }} - LiveClass{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-5">
+      <div class="card card-modern border-0 shadow-lg p-4 p-md-5 text-center">
+        <div class="d-inline-flex p-3 rounded-circle bg-danger bg-opacity-10 text-danger mb-3 mx-auto">
+          <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+        </div>
+        <h3 class="fw-bold mb-2">Delete Live Class?</h3>
+        <p class="text-secondary small mb-4">
+          Are you sure you want to permanently delete <strong>"{{ live_class.title }}"</strong> (Room Code: <span class="code-pill">{{ live_class.room_code }}</span>)? This will also remove all associated participant, attendance, and chat records.
+        </p>
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-danger btn-lg">
+              <i class="bi bi-trash me-1"></i> Confirm & Delete Class
+            </button>
+            <a href="{% url 'classrooms:live_detail' live_class.pk %}" class="btn btn-outline-secondary">
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

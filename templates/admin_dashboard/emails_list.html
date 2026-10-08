@@ -1,0 +1,217 @@
+{% extends "admin_dashboard/base_admin.html" %}
+
+{% block title %}Email Delivery Logs - TeachLive Admin{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+  <div>
+    <h2 class="fw-bold mb-1 brand-font text-dark">Email Delivery Logs</h2>
+    <p class="text-muted mb-0 small">
+      Transactional email dispatch history, delivery success rates, and SMTP failure audits.
+    </p>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <span class="text-muted small fw-semibold text-uppercase">Total Dispatched</span>
+          <h3 class="fw-bold mb-0 mt-1 text-dark">{{ total_emails }}</h3>
+        </div>
+        <div class="stat-icon-box bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-envelope-paper-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <span class="text-muted small fw-semibold text-uppercase">Delivered (Sent)</span>
+          <h3 class="fw-bold mb-0 mt-1 text-success">{{ sent_emails }}</h3>
+        </div>
+        <div class="stat-icon-box bg-success bg-opacity-10 text-success">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <span class="text-muted small fw-semibold text-uppercase">Failed Dispatches</span>
+          <h3 class="fw-bold mb-0 mt-1 {% if failed_emails > 0 %}text-danger{% else %}text-muted{% endif %}">{{ failed_emails }}</h3>
+        </div>
+        <div class="stat-icon-box bg-danger bg-opacity-10 text-danger">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <span class="text-muted small fw-semibold text-uppercase">Success Rate</span>
+          <h3 class="fw-bold mb-0 mt-1 text-info">{{ success_rate }}%</h3>
+        </div>
+        <div class="stat-icon-box bg-info bg-opacity-10 text-info">
+          <i class="bi bi-pie-chart-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card border-0 shadow-sm rounded-3 mb-4">
+  <div class="card-body p-3">
+    <form method="get" class="row g-2 align-items-center">
+      <div class="col-md-4">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" name="q" value="{{ search_query }}" class="form-control form-control-sm border-start-0" placeholder="Search recipient, subject, errors...">
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <select name="type" class="form-select form-select-sm">
+          <option value="">All Email Types</option>
+          {% for t in distinct_types %}
+            <option value="{{ t }}" {% if selected_type == t %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Statuses</option>
+          <option value="SENT" {% if selected_status == 'SENT' %}selected{% endif %}>Sent (Success)</option>
+          <option value="FAILED" {% if selected_status == 'FAILED' %}selected{% endif %}>Failed</option>
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+          <i class="bi bi-funnel me-1"></i> Filter
+        </button>
+        {% if search_query or selected_type or selected_status %}
+          <a href="{% url 'admin_dashboard:emails' %}" class="btn btn-outline-secondary btn-sm" title="Clear">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Table Card -->
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+    <span class="fw-bold text-dark"><i class="bi bi-envelope-check me-2 text-primary"></i>Email Delivery Records ({{ total_count }})</span>
+  </div>
+  <div class="card-body p-0">
+    {% if email_logs.object_list %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 text-nowrap">
+          <thead class="table-light text-uppercase small text-muted" style="font-size: 0.75rem;">
+            <tr>
+              <th class="ps-4">Recipient</th>
+              <th>Category</th>
+              <th>Subject</th>
+              <th>Related Class</th>
+              <th>Status</th>
+              <th>Error Details</th>
+              <th class="pe-4">Sent At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in email_logs %}
+              <tr>
+                <td class="ps-4">
+                  <div class="fw-semibold text-dark">{{ log.recipient }}</div>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark border">
+                    {{ log.email_type }}
+                  </span>
+                </td>
+                <td>
+                  <span class="text-dark">{{ log.subject }}</span>
+                </td>
+                <td>
+                  {% if log.related_live_class %}
+                    <a href="{% url 'admin_dashboard:class_detail' log.related_live_class.pk %}" class="badge text-decoration-none bg-info bg-opacity-10 text-info border border-info border-opacity-25">
+                      {{ log.related_live_class.room_code }}
+                    </a>
+                  {% else %}
+                    <span class="text-muted small">&mdash;</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if log.status == 'SENT' %}
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                      <i class="bi bi-check-circle-fill me-1"></i> Sent
+                    </span>
+                  {% else %}
+                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                      <i class="bi bi-x-circle-fill me-1"></i> Failed
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if log.error_message %}
+                    <span class="text-danger small text-truncate d-inline-block" style="max-width: 250px;" title="{{ log.error_message }}">
+                      {{ log.error_message }}
+                    </span>
+                  {% else %}
+                    <span class="text-muted small">&mdash;</span>
+                  {% endif %}
+                </td>
+                <td class="pe-4 text-muted small">
+                  {{ log.sent_at|date:"M j, Y, g:i a" }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if email_logs.has_other_pages %}
+        <div class="d-flex justify-content-between align-items-center p-3 border-top">
+          <small class="text-muted">Showing page {{ email_logs.number }} of {{ email_logs.paginator.num_pages }}</small>
+          <ul class="pagination pagination-sm mb-0">
+            {% if email_logs.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ email_logs.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">Previous</a>
+              </li>
+            {% endif %}
+            {% if email_logs.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ email_logs.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">Next</a>
+              </li>
+            {% endif %}
+          </ul>
+        </div>
+      {% endif %}
+
+    {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-envelope-x text-muted fs-1 mb-2"></i>
+        <h6 class="text-dark fw-bold">No Email Logs Found</h6>
+        <p class="text-muted small">No email dispatches match your search or filter parameters.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

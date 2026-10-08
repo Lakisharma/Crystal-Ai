@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Scheduled Classes - TeachLive Instructor{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header Bar -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h2 class="fw-bold mb-0">Scheduled Classes</h2>
+        <span class="badge badge-role-teacher">Instructor Hub</span>
+      </div>
+      <p class="text-secondary mb-0">Manage teaching schedules, launch sessions, reschedule, or review past classes.</p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'classrooms:live_create' %}" class="btn btn-danger d-flex align-items-center gap-2">
+        <i class="bi bi-calendar-plus"></i>
+        <span>Schedule Class</span>
+      </a>
+      <a href="{% url 'classrooms:teacher_calendar' %}" class="btn btn-outline-primary d-flex align-items-center gap-2">
+        <i class="bi bi-calendar-month"></i>
+        <span>Calendar View</span>
+      </a>
+      <a href="{% url 'accounts:teacher_dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Status / Time Tabs -->
+  <div class="card card-modern p-2 mb-4 bg-white shadow-sm">
+    <ul class="nav nav-pills gap-2 flex-wrap">
+      <li class="nav-item">
+        <a class="nav-link py-2 px-3 fw-semibold {% if active_tab == 'all' %}active bg-dark text-white{% else %}text-secondary{% endif %}" href="{% url 'classrooms:teacher_classes' %}?tab=all{% if search_query %}&q={{ search_query }}{% endif %}">
+          All Classes <span class="badge bg-secondary-subtle text-secondary ms-1">{{ total_count }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link py-2 px-3 fw-semibold {% if active_tab == 'today' %}active bg-primary text-white{% else %}text-secondary{% endif %}" href="{% url 'classrooms:teacher_classes' %}?tab=today{% if search_query %}&q={{ search_query }}{% endif %}">
+          <i class="bi bi-calendar-event me-1"></i> Today's Classes <span class="badge bg-primary-subtle text-primary ms-1">{{ today_count }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link py-2 px-3 fw-semibold {% if active_tab == 'upcoming' %}active bg-info text-white{% else %}text-secondary{% endif %}" href="{% url 'classrooms:teacher_classes' %}?tab=upcoming{% if search_query %}&q={{ search_query }}{% endif %}">
+          <i class="bi bi-clock-history me-1"></i> Upcoming <span class="badge bg-info-subtle text-info ms-1">{{ upcoming_count }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link py-2 px-3 fw-semibold {% if active_tab == 'past' %}active bg-success text-white{% else %}text-secondary{% endif %}" href="{% url 'classrooms:teacher_classes' %}?tab=past{% if search_query %}&q={{ search_query }}{% endif %}">
+          <i class="bi bi-check2-circle me-1"></i> Past & Completed <span class="badge bg-success-subtle text-success ms-1">{{ past_count }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link py-2 px-3 fw-semibold {% if active_tab == 'cancelled' %}active bg-secondary text-white{% else %}text-secondary{% endif %}" href="{% url 'classrooms:teacher_classes' %}?tab=cancelled{% if search_query %}&q={{ search_query }}{% endif %}">
+          <i class="bi bi-x-circle me-1"></i> Cancelled <span class="badge bg-light text-muted ms-1">{{ cancelled_count }}</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Filters & Search Toolbar -->
+  <div class="card card-modern p-3 mb-4 bg-white shadow-sm">
+    <form method="get" class="row g-2 align-items-center">
+      <input type="hidden" name="tab" value="{{ active_tab }}">
+
+      <!-- Search Input -->
+      <div class="col-md-4">
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" name="q" class="form-control border-start-0" placeholder="Search title, subject, room code..." value="{{ search_query }}">
+        </div>
+      </div>
+
+      <!-- Date Filter -->
+      <div class="col-md-3">
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-calendar3 text-muted"></i></span>
+          <input type="date" name="date" class="form-control border-start-0" value="{{ selected_date }}" title="Filter by date">
+        </div>
+      </div>
+
+      <!-- Subject Filter -->
+      <div class="col-md-3">
+        <select name="subject" class="form-select">
+          <option value="">All Subjects</option>
+          {% for subj in all_subjects %}
+            <option value="{{ subj }}" {% if selected_subject == subj %}selected{% endif %}>{{ subj }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Filter / Reset Buttons -->
+      <div class="col-md-2 d-flex gap-1">
+        <button type="submit" class="btn btn-primary flex-grow-1">Filter</button>
+        {% if search_query or selected_date or selected_subject %}
+          <a href="{% url 'classrooms:teacher_classes' %}?tab={{ active_tab }}" class="btn btn-outline-secondary" title="Reset Filters">
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Classes Table -->
+  {% if classes %}
+    <div class="card card-modern border-0 shadow-sm p-0 overflow-hidden mb-4">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small">
+            <tr>
+              <th style="width: 25%;">Class Details</th>
+              <th>Room Code</th>
+              <th>Date & Time</th>
+              <th>Duration</th>
+              <th>Status / Timing</th>
+              <th>Capacity</th>
+              <th>Access Mode</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in classes %}
+              <tr>
+                <td>
+                  <div class="fw-bold fs-6">
+                    <a href="{% url 'classrooms:live_detail' item.pk %}" class="text-dark text-decoration-none">
+                      {{ item.title }}
+                    </a>
+                  </div>
+                  <div class="small text-secondary">
+                    <span>{{ item.subject }}</span>
+                    {% if item.has_password %}
+                      <span class="badge bg-warning-subtle text-dark ms-1" title="Password protected">
+                        <i class="bi bi-lock-fill"></i> Passcode
+                      </span>
+                    {% endif %}
+                  </div>
+                </td>
+
+                <td>
+                  <span class="badge bg-light text-dark font-monospace border px-2 py-1">{{ item.room_code }}</span>
+                </td>
+
+                <td class="small">
+                  <div class="fw-semibold text-dark">{{ item.scheduled_date|date:"M d, Y" }}</div>
+                  <div class="text-muted">{{ item.scheduled_time|time:"h:i A" }}</div>
+                </td>
+
+                <td class="small text-secondary">
+                  <i class="bi bi-hourglass-split me-1"></i>{{ item.duration }}m
+                </td>
+
+                <td>
+                  {% if item.status == 'LIVE' %}
+                    <span class="badge bg-danger d-inline-flex align-items-center gap-1 shadow-sm px-2 py-1">
+                      <span class="spinner-grow spinner-grow-sm" style="width: 0.4rem; height: 0.4rem;"></span>
+                      LIVE
+                    </span>
+                  {% elif item.status == 'SCHEDULED' %}
+                    {% if item.is_within_start_window %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1">
+                        <i class="bi bi-check-circle-fill"></i> Ready to Start
+                      </span>
+                    {% else %}
+                      <span class="badge bg-info-subtle text-info border border-info-subtle" title="Starts {{ item.scheduled_datetime|date:'M d, Y h:i A' }}">
+                        <i class="bi bi-clock me-1"></i>Starts in {{ item.countdown_seconds|default:0 }}s
+                      </span>
+                    {% endif %}
+                  {% elif item.status == 'COMPLETED' %}
+                    <span class="badge bg-secondary-subtle text-secondary">
+                      <i class="bi bi-check2 me-1"></i>ENDED
+                    </span>
+                  {% else %}
+                    <span class="badge bg-danger-subtle text-danger">
+                      <i class="bi bi-x-circle me-1"></i>CANCELLED
+                    </span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  <span class="badge bg-light text-dark border">
+                    <i class="bi bi-people me-1"></i>{{ item.participant_count }} / {{ item.max_students }}
+                  </span>
+                </td>
+
+                <td>
+                  <span class="badge bg-light text-secondary border small">
+                    {{ item.get_access_mode_display }}
+                  </span>
+                </td>
+
+                <td class="text-end">
+                  <div class="d-inline-flex align-items-center gap-1">
+                    <!-- 1. View Details -->
+                    <a href="{% url 'classrooms:live_detail' item.pk %}" class="btn btn-sm btn-outline-primary" title="View Class Details">
+                      <i class="bi bi-eye"></i>
+                    </a>
+
+                    <!-- 2. Start / Enter Classroom -->
+                    {% if item.status == 'LIVE' %}
+                      <a href="{% url 'classrooms:teacher_class_live' item.pk %}" class="btn btn-sm btn-danger fw-semibold px-2" title="Enter Live Classroom">
+                        <i class="bi bi-camera-video-fill"></i> Enter
+                      </a>
+                      <form action="{% url 'classrooms:live_end' item.pk %}" method="post" class="d-inline" onsubmit="return confirm('End this live class session?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="End Live Class">
+                          <i class="bi bi-stop-circle"></i>
+                        </button>
+                      </form>
+                    {% elif item.status == 'SCHEDULED' %}
+                      {% if item.is_within_start_window %}
+                        <form action="{% url 'classrooms:live_start' item.pk %}" method="post" class="d-inline">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-sm btn-success fw-semibold px-2" title="Start Class Now">
+                            <i class="bi bi-play-circle-fill"></i> Start
+                          </button>
+                        </form>
+                      {% else %}
+                        <button class="btn btn-sm btn-secondary disabled" title="Start window opens 15 mins before class">
+                          <i class="bi bi-clock"></i> Starts Soon
+                        </button>
+                      {% endif %}
+
+                      <!-- Reschedule -->
+                      <a href="{% url 'classrooms:teacher_class_reschedule' item.pk %}" class="btn btn-sm btn-outline-info" title="Reschedule Class">
+                        <i class="bi bi-calendar-event"></i>
+                      </a>
+
+                      <!-- Cancel -->
+                      <a href="{% url 'classrooms:teacher_class_cancel' item.pk %}" class="btn btn-sm btn-outline-warning" title="Cancel Class">
+                        <i class="bi bi-x-circle"></i>
+                      </a>
+                    {% elif item.status == 'COMPLETED' %}
+                      <a href="{% url 'classrooms:teacher_class_attendance' item.pk %}" class="btn btn-sm btn-outline-success" title="View Attendance Report">
+                        <i class="bi bi-clipboard-check"></i>
+                      </a>
+                    {% endif %}
+
+                    <!-- Students Roster -->
+                    <a href="{% url 'classrooms:teacher_class_students' item.room_code %}" class="btn btn-sm btn-outline-secondary" title="Manage Enrolled Students">
+                      <i class="bi bi-people"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if classes.has_other_pages %}
+        <div class="card-footer bg-white border-0 py-3">
+          <nav aria-label="Class pagination">
+            <ul class="pagination pagination-sm justify-content-center mb-0">
+              {% if classes.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ classes.previous_page_number }}&tab={{ active_tab }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}{% if selected_subject %}&subject={{ selected_subject }}{% endif %}">Previous</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+              {% endif %}
+
+              {% for p in classes.paginator.page_range %}
+                {% if classes.number == p %}
+                  <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                {% elif p > classes.number|add:'-3' and p < classes.number|add:'3' %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ p }}&tab={{ active_tab }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}{% if selected_subject %}&subject={{ selected_subject }}{% endif %}">{{ p }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if classes.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ classes.next_page_number }}&tab={{ active_tab }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}{% if selected_subject %}&subject={{ selected_subject }}{% endif %}">Next</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">Next</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="card card-modern p-5 text-center my-4">
+      <div class="p-3 bg-light rounded-circle d-inline-block mx-auto mb-3">
+        <i class="bi bi-calendar-x fs-1 text-muted"></i>
+      </div>
+      <h5 class="fw-bold">No Scheduled Classes Found</h5>
+      <p class="text-secondary small mb-3">
+        {% if search_query or selected_date or selected_subject %}
+          No classes match your current search and filter criteria.
+        {% else %}
+          You have no classes in this category. Schedule a live class to get started.
+        {% endif %}
+      </p>
+      <div>
+        <a href="{% url 'classrooms:live_create' %}" class="btn btn-danger px-4">
+          <i class="bi bi-calendar-plus me-1"></i> Schedule Class
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

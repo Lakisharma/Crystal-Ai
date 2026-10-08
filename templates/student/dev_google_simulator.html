@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Google OAuth Simulator - TeachLive{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+
+      <!-- Header -->
+      <div class="text-center mb-4">
+        <div class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-semibold mb-2">
+          <i class="bi bi-tools me-1"></i> Developer &amp; Testing Mode
+        </div>
+        <h2 class="h4 fw-bold text-navy">Google OAuth 2.0 Simulator</h2>
+        <p class="text-muted small">
+          <code>GOOGLE_CLIENT_ID</code> is not configured in <code>.env</code>.<br>
+          Use this instant simulator to test student Google authentication flows.
+        </p>
+      </div>
+
+      <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-4">
+          
+          <h6 class="fw-bold text-dark mb-3">Quick Demo Students:</h6>
+          <div class="d-grid gap-2 mb-4">
+            
+            <form method="post" action="{% url 'student:google_login' %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ next_url }}">
+              <input type="hidden" name="email" value="alex.turner@gmail.com">
+              <input type="hidden" name="name" value="Alex Turner">
+              <input type="hidden" name="google_id" value="goog_alex_1001">
+              <button type="submit" class="btn btn-outline-primary text-start w-100 p-3 rounded-3 d-flex align-items-center">
+                <div class="avatar-circle me-3 bg-primary text-white" style="width: 38px; height: 38px;">A</div>
+                <div>
+                  <div class="fw-bold text-dark">Alex Turner</div>
+                  <div class="small text-muted">alex.turner@gmail.com</div>
+                </div>
+                <i class="bi bi-box-arrow-in-right ms-auto text-primary fs-5"></i>
+              </button>
+            </form>
+
+            <form method="post" action="{% url 'student:google_login' %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ next_url }}">
+              <input type="hidden" name="email" value="sarah.connor@gmail.com">
+              <input type="hidden" name="name" value="Sarah Connor">
+              <input type="hidden" name="google_id" value="goog_sarah_1002">
+              <button type="submit" class="btn btn-outline-info text-start w-100 p-3 rounded-3 d-flex align-items-center">
+                <div class="avatar-circle me-3 bg-info text-white" style="width: 38px; height: 38px;">S</div>
+                <div>
+                  <div class="fw-bold text-dark">Sarah Connor</div>
+                  <div class="small text-muted">sarah.connor@gmail.com</div>
+                </div>
+                <i class="bi bi-box-arrow-in-right ms-auto text-info fs-5"></i>
+              </button>
+            </form>
+
+          </div>
+
+          <div class="position-relative text-center my-3">
+            <hr class="text-muted">
+            <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small">or test custom email</span>
+          </div>
+
+          <!-- Custom Google Account Form -->
+          <form method="post" action="{% url 'student:google_login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next_url }}">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Google Account Name</label>
+              <input type="text" name="name" class="form-control" placeholder="e.g. John Doe" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Google Email Address</label>
+              <input type="email" name="email" class="form-control" placeholder="user@gmail.com" required>
+            </div>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary py-2 rounded-3 fw-semibold">
+                Simulate Sign In with Google
+              </button>
+            </div>
+          </form>
+
+        </div>
+        <div class="card-footer bg-light border-0 py-3 text-center">
+          <a href="{% url 'student:login' %}" class="text-muted small text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i> Back to Student Login
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

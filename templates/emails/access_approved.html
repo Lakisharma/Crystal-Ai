@@ -1,0 +1,25 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_title %}Access Approved: {{ live_class.title }}{% endblock %}
+
+{% block email_content %}
+  <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Class Access Request Approved</h2>
+  
+  <p>Hello {{ student.get_full_name|default:student.username }},</p>
+  <p>Your request to join <strong>"{{ live_class.title }}"</strong> taught by <strong>{{ live_class.teacher.get_full_name|default:live_class.teacher.username }}</strong> has been approved!</p>
+
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Class Title:</span> <span class="info-value">{{ live_class.title }}</span></div>
+    <div class="info-row"><span class="info-label">Subject:</span> <span class="info-value">{{ live_class.subject }}</span></div>
+    <div class="info-row"><span class="info-label">Instructor:</span> <span class="info-value">{{ live_class.teacher.get_full_name|default:live_class.teacher.username }}</span></div>
+    <div class="info-row"><span class="info-label">Scheduled Date:</span> <span class="info-value">{{ live_class.scheduled_date|date:"l, F j, Y" }}</span></div>
+    <div class="info-row"><span class="info-label">Scheduled Time:</span> <span class="info-value">{{ live_class.scheduled_time|time:"g:i A" }}</span></div>
+    <div class="info-row"><span class="info-label">Room Code:</span> <span class="info-value" style="font-family: monospace; font-weight: 700; color: #2563eb;">{{ live_class.room_code }}</span></div>
+  </div>
+
+  <p>You can now enter the live classroom when the class is in session.</p>
+
+  <div style="text-align: center; margin: 24px 0;">
+    <a href="{{ join_url }}" class="btn-action">Enter Live Classroom</a>
+  </div>
+{% endblock %}

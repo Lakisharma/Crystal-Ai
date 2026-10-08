@@ -1,0 +1,99 @@
+{% extends 'admin_dashboard/base_admin.html' %}
+
+{% block title %}Platform Settings - TeachLive Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Platform Settings & Environment</h3>
+    <p class="text-muted mb-0 small">System health, environment parameters, and infrastructure diagnostics.</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white border-bottom border-light py-3">
+        <div class="fw-bold fs-6">
+          <i class="bi bi-hdd-network text-primary me-1"></i> System Diagnostics
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+            <span class="text-muted">Platform Name</span>
+            <span class="fw-semibold text-dark">TeachLive Virtual Classroom</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+            <span class="text-muted">Django Version</span>
+            <span class="badge bg-light text-dark border font-monospace">{{ system_info.django_version }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+            <span class="text-muted">Python Runtime</span>
+            <span class="badge bg-light text-dark border font-monospace">{{ system_info.python_version }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+            <span class="text-muted">Configured Timezone</span>
+            <span class="fw-semibold text-dark">{{ system_info.timezone }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+            <span class="text-muted">Total Registered Accounts</span>
+            <span class="fw-bold text-dark">{{ system_info.user_count }} users</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+            <span class="text-muted">Active Classroom Sessions</span>
+            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">{{ system_info.active_sessions }} online</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white border-bottom border-light py-3">
+        <div class="fw-bold fs-6">
+          <i class="bi bi-shield-check text-primary me-1"></i> Infrastructure Services
+        </div>
+      </div>
+      <div class="card-body p-4">
+        <!-- LiveKit WebRTC Status -->
+        <div class="d-flex align-items-start gap-3 mb-4 pb-4 border-bottom border-light">
+          <div class="rounded-circle {% if system_info.is_livekit_configured %}bg-success bg-opacity-10 text-success{% else %}bg-warning bg-opacity-10 text-warning{% endif %} p-2.5">
+            <i class="bi {% if system_info.is_livekit_configured %}bi-broadcast-pin{% else %}bi-exclamation-triangle{% endif %} fs-4"></i>
+          </div>
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <h6 class="fw-bold mb-0">LiveKit WebRTC Server</h6>
+              {% if system_info.is_livekit_configured %}
+                <span class="badge bg-success">Configured</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Missing .env Keys</span>
+              {% endif %}
+            </div>
+            <p class="text-muted small mt-1 mb-0">
+              Handles low-latency WebRTC live audio/video streaming and screen-sharing pipelines.
+            </p>
+          </div>
+        </div>
+
+        <!-- Authentication Services -->
+        <div class="d-flex align-items-start gap-3">
+          <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2.5">
+            <i class="bi bi-google fs-4"></i>
+          </div>
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <h6 class="fw-bold mb-0">Student Google OAuth 2.0</h6>
+              <span class="badge bg-primary">Active</span>
+            </div>
+            <p class="text-muted small mt-1 mb-0">
+              Google OpenID Connect authentication provider enabled for student instant onboarding.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reschedule Class - {{ live_class.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- Breadcrumb / Back Link -->
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="{% url 'classrooms:teacher_classes' %}" class="text-decoration-none">Scheduled Classes</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'classrooms:live_detail' live_class.pk %}" class="text-decoration-none">{{ live_class.room_code }}</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Reschedule</li>
+        </ol>
+      </nav>
+
+      <!-- Main Card -->
+      <div class="card card-modern border-0 shadow-sm overflow-hidden">
+        <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+          <div>
+            <h4 class="fw-bold mb-0 text-dark">Reschedule Live Class</h4>
+            <p class="text-secondary small mb-0">Update session timing. Enrolled students will automatically receive update notifications.</p>
+          </div>
+          <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2">
+            <i class="bi bi-clock-history me-1"></i> SCHEDULED
+          </span>
+        </div>
+
+        <div class="card-body p-4">
+          <!-- Current Schedule Summary Alert -->
+          <div class="alert alert-light border d-flex align-items-center gap-3 mb-4">
+            <div class="p-2 bg-primary-subtle text-primary rounded-circle">
+              <i class="bi bi-info-circle-fill fs-5"></i>
+            </div>
+            <div>
+              <div class="fw-bold text-dark">{{ live_class.title }} ({{ live_class.subject }})</div>
+              <div class="small text-secondary">
+                Current Time: <strong>{{ live_class.scheduled_date|date:"F d, Y" }} at {{ live_class.scheduled_time|time:"h:i A" }}</strong> ({{ live_class.duration }} mins)
+              </div>
+            </div>
+          </div>
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              {% for error in form.non_field_errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endif %}
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="row g-3 mb-3">
+              <!-- New Date -->
+              <div class="col-md-6">
+                <label for="id_scheduled_date" class="form-label fw-semibold text-dark">New Date <span class="text-danger">*</span></label>
+                {{ form.scheduled_date }}
+                {% if form.scheduled_date.errors %}
+                  <div class="text-danger small mt-1">{{ form.scheduled_date.errors.0 }}</div>
+                {% endif %}
+              </div>
+
+              <!-- New Start Time -->
+              <div class="col-md-6">
+                <label for="id_scheduled_time" class="form-label fw-semibold text-dark">New Start Time <span class="text-danger">*</span></label>
+                {{ form.scheduled_time }}
+                {% if form.scheduled_time.errors %}
+                  <div class="text-danger small mt-1">{{ form.scheduled_time.errors.0 }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Duration -->
+            <div class="mb-3">
+              <label for="id_duration" class="form-label fw-semibold text-dark">Class Duration (minutes) <span class="text-danger">*</span></label>
+              {{ form.duration }}
+              <div class="form-text text-muted">Minimum 5 minutes, maximum 360 minutes (6 hours).</div>
+              {% if form.duration.errors %}
+                <div class="text-danger small mt-1">{{ form.duration.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Reschedule Reason / Note to Students -->
+            <div class="mb-4">
+              <label for="id_update_summary" class="form-label fw-semibold text-dark">Reason / Note to Students (Optional)</label>
+              {{ form.update_summary }}
+              <div class="form-text text-muted">This explanation will be included in the update email sent to enrolled students.</div>
+              {% if form.update_summary.errors %}
+                <div class="text-danger small mt-1">{{ form.update_summary.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+              <a href="{% url 'classrooms:live_detail' live_class.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle me-1"></i> Cancel
+              </a>
+              <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                <i class="bi bi-calendar-check me-1"></i> Confirm Reschedule
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

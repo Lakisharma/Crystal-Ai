@@ -1,0 +1,161 @@
+{% extends 'admin_dashboard/base_admin.html' %}
+
+{% block title %}Student: {{ student.get_full_name|default:student.username }} - TeachLive Admin{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'admin_dashboard:students' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i> Back to Students Directory
+  </a>
+</div>
+
+<!-- Student Profile Header Card -->
+<div class="card border-0 shadow-sm rounded-3 mb-4">
+  <div class="card-body p-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        {% if student.avatar_url %}
+          <img src="{{ student.avatar_url }}" alt="{{ student.username }}" class="rounded-circle shadow-sm" style="width: 72px; height: 72px; object-fit: cover;">
+        {% else %}
+          <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center fw-bold fs-3 shadow-sm" style="width: 72px; height: 72px;">
+            {{ student.username|make_list|first|upper }}
+          </div>
+        {% endif %}
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <h4 class="fw-bold mb-0 text-dark">{{ student.get_full_name|default:student.username }}</h4>
+            {% if student.is_active %}
+              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Active</span>
+            {% else %}
+              <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">Deactivated</span>
+            {% endif %}
+          </div>
+          <div class="text-muted small mt-1">
+            <span class="me-3"><i class="bi bi-envelope me-1"></i>{{ student.email }}</span>
+            <span class="me-3"><i class="bi bi-person me-1"></i>@{{ student.username }}</span>
+            <span><i class="bi bi-calendar-event me-1"></i>Registered {{ student.date_joined|date:"M d, Y" }}</span>
+          </div>
+          <div class="text-muted small mt-1">
+            <span><i class="bi bi-clock-history me-1"></i>Last login: {{ student.last_login|date:"M d, Y H:i"|default:"Never" }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action: Activate / Deactivate with Confirmation -->
+      <div>
+        <form method="post" action="{% url 'admin_dashboard:student_toggle_status' pk=student.pk %}" onsubmit="return confirm('Are you sure you want to {% if student.is_active %}deactivate{% else %}activate{% endif %} this student account?');">
+          {% csrf_token %}
+          {% if student.is_active %}
+            <button type="submit" class="btn btn-outline-danger btn-sm px-3 shadow-sm">
+              <i class="bi bi-person-x me-1"></i> Deactivate Student
+            </button>
+          {% else %}
+            <button type="submit" class="btn btn-success btn-sm px-3 shadow-sm">
+              <i class="bi bi-person-check me-1"></i> Activate Student
+            </button>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold">Classes Joined</span>
+        <div class="stat-icon-box bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-collection-play"></i>
+        </div>
+      </div>
+      <div class="fs-3 fw-bold text-dark">{{ classes_joined_count }}</div>
+      <small class="text-muted" style="font-size: 0.72rem;">Live Classes Participated</small>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold">Attendance Sessions</span>
+        <div class="stat-icon-box bg-success bg-opacity-10 text-success">
+          <i class="bi bi-calendar-check"></i>
+        </div>
+      </div>
+      <div class="fs-3 fw-bold text-dark">{{ total_attendance_sessions }}</div>
+      <small class="text-muted" style="font-size: 0.72rem;">Logged Sessions</small>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold">Total Learning Time</span>
+        <div class="stat-icon-box bg-info bg-opacity-10 text-info">
+          <i class="bi bi-stopwatch"></i>
+        </div>
+      </div>
+      <div class="fs-3 fw-bold text-dark">{{ learning_time_formatted }}</div>
+      <small class="text-muted" style="font-size: 0.72rem;">{{ total_learning_mins }} minutes total</small>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Classes Attended -->
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-header bg-white border-bottom border-light py-3">
+    <div class="fw-bold fs-6">
+      <i class="bi bi-clock-history me-1 text-primary"></i> Attendance History for {{ student.get_full_name|default:student.username }}
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light small text-muted">
+        <tr>
+          <th>Class Title</th>
+          <th>Teacher</th>
+          <th>Join Time</th>
+          <th>Leave Time</th>
+          <th>Duration</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for att in recent_attendances %}
+          <tr>
+            <td>
+              <div class="fw-semibold text-dark">{{ att.live_class.title }}</div>
+              <small class="text-muted">{{ att.live_class.subject }} ({{ att.live_class.room_code }})</small>
+            </td>
+            <td>
+              <div class="small fw-medium">{{ att.live_class.teacher.get_full_name|default:att.live_class.teacher.username }}</div>
+              <small class="text-muted">{{ att.live_class.teacher.email }}</small>
+            </td>
+            <td class="small">{{ att.joined_at|date:"M d, Y H:i" }}</td>
+            <td class="small text-muted">{{ att.left_at|date:"M d, Y H:i"|default:"In Progress / Active" }}</td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ att.total_duration }} mins</span>
+            </td>
+            <td>
+              {% if att.status == 'PRESENT' %}
+                <span class="badge bg-success">Present</span>
+              {% elif att.status == 'LEFT' %}
+                <span class="badge bg-secondary">Left</span>
+              {% elif att.status == 'DISCONNECTED' %}
+                <span class="badge bg-warning text-dark">Disconnected</span>
+              {% else %}
+                <span class="badge bg-light text-dark border">{{ att.get_status_display }}</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted small">No class attendance history recorded yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

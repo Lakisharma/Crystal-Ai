@@ -1,0 +1,540 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Teacher Dashboard - TeachLive{% endblock %}
+{% block meta_description %}TeachLive Instructor Dashboard: monitor live classrooms, today's schedule, upcoming lectures, student attendance, and notifications.{% endblock %}
+
+{% block extra_css %}
+<meta name="robots" content="noindex, nofollow">
+<style>
+  .card-stat {
+    border: none;
+    border-radius: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.08) !important;
+  }
+  .bg-gradient-navy {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+  }
+  .bg-gradient-danger-subtle {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.08) 0%, rgba(220, 53, 69, 0.15) 100%);
+  }
+  .calendar-day-box {
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+  }
+  .calendar-day-box.is-today {
+    border: 2px solid #2563eb;
+    background-color: rgba(37, 99, 235, 0.05);
+  }
+  .calendar-day-box:hover {
+    border-color: #3b82f6;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- 1. Top Welcome Banner & Quick Actions -->
+  <div class="card card-modern p-4 mb-4 border-0 shadow-sm bg-gradient-navy text-white rounded-4 overflow-hidden">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-primary px-3 py-1 fs-6 rounded-pill">
+            <i class="bi bi-person-workspace me-1"></i> Instructor Portal
+          </span>
+          <span class="badge bg-success bg-opacity-25 text-success-light border border-success border-opacity-50 rounded-pill">
+            <i class="bi bi-shield-check me-1"></i> Account Active
+          </span>
+        </div>
+        <h1 class="h2 fw-bold mb-1 text-white">
+          Welcome, Professor {{ teacher.get_full_name|default:teacher.username }}
+        </h1>
+        <p class="text-white-50 small mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-calendar3"></i> {{ today_date|date:"l, F d, Y" }}
+          <span>&bull;</span>
+          <span>TeachLive Platform &bull; "Teach Live. Learn Live."</span>
+        </p>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <a href="{% url 'classrooms:live_create' %}" class="btn btn-danger btn-lg px-4 shadow-sm d-flex align-items-center gap-2 rounded-pill fw-bold" id="btnCreateLiveClass">
+          <i class="bi bi-broadcast"></i>
+          <span>Create Live Class</span>
+        </a>
+        <a href="{% url 'teacher_classes_direct' %}" class="btn btn-outline-light btn-lg px-3 rounded-pill fw-semibold">
+          <i class="bi bi-easel2 me-1"></i> My Classes
+        </a>
+        <a href="{% url 'teacher_calendar_direct' %}" class="btn btn-outline-light btn-lg px-3 rounded-pill fw-semibold">
+          <i class="bi bi-calendar-month me-1"></i> Calendar
+        </a>
+        <a href="{% url 'notifications:list' %}" class="btn btn-outline-light btn-lg px-3 rounded-pill position-relative" title="Notifications">
+          <i class="bi bi-bell"></i>
+          {% if unread_notifications_count > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-2 border-dark" style="font-size: 0.65rem;">
+              {{ unread_notifications_count }}
+            </span>
+          {% endif %}
+        </a>
+        <a href="{% url 'accounts:teacher_profile' %}" class="btn btn-light btn-lg rounded-pill" title="Instructor Profile">
+          <i class="bi bi-person-gear"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Statistics Grid (Real Database Data) -->
+  <div class="row g-3 mb-4">
+    <!-- Today's Classes -->
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card card-stat p-3 h-100 shadow-sm bg-white border-start border-primary border-4">
+        <span class="text-muted small fw-semibold text-uppercase">Today</span>
+        <h3 class="fw-bold mb-0 text-primary mt-1">{{ today_classes_count }}</h3>
+        <small class="text-secondary">Sessions today</small>
+      </div>
+    </div>
+
+    <!-- Upcoming / Scheduled Classes -->
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card card-stat p-3 h-100 shadow-sm bg-white border-start border-info border-4">
+        <span class="text-muted small fw-semibold text-uppercase">Scheduled Classes</span>
+        <h3 class="fw-bold mb-0 text-info mt-1">{{ upcoming_classes_count }}</h3>
+        <small class="text-secondary">Scheduled ahead</small>
+      </div>
+    </div>
+
+    <!-- Live Classes -->
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card card-stat p-3 h-100 shadow-sm bg-white border-start border-danger border-4">
+        <span class="text-muted small fw-semibold text-uppercase">Live Classes</span>
+        <h3 class="fw-bold mb-0 text-danger mt-1">
+          {% if live_classes_count > 0 %}
+            <span class="spinner-grow spinner-grow-sm text-danger" role="status"></span>
+          {% endif %}
+          {{ live_classes_count }}
+        </h3>
+        <small class="text-danger fw-semibold">Active stream</small>
+      </div>
+    </div>
+
+    <!-- Completed Classes -->
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card card-stat p-3 h-100 shadow-sm bg-white border-start border-success border-4">
+        <span class="text-muted small fw-semibold text-uppercase">Completed</span>
+        <h3 class="fw-bold mb-0 text-success mt-1">{{ completed_classes_count }}</h3>
+        <small class="text-secondary">Concluded</small>
+      </div>
+    </div>
+
+    <!-- Total Students -->
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card card-stat p-3 h-100 shadow-sm bg-white border-start border-warning border-4">
+        <span class="text-muted small fw-semibold text-uppercase">Total Students</span>
+        <h3 class="fw-bold mb-0 text-dark mt-1">{{ total_students }}</h3>
+        <small class="text-secondary">Distinct learners</small>
+      </div>
+    </div>
+
+    <!-- Teaching Hours -->
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card card-stat p-3 h-100 shadow-sm bg-white border-start border-secondary border-4">
+        <span class="text-muted small fw-semibold text-uppercase">Teaching Hours</span>
+        <h3 class="fw-bold mb-0 text-dark mt-1">{{ total_teaching_hours }}h</h3>
+        <small class="text-secondary">Completed time</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Prominent LIVE NOW Section -->
+  {% if live_class_now %}
+    <div class="card border-danger border-2 shadow-sm rounded-4 mb-4 bg-gradient-danger-subtle overflow-hidden">
+      <div class="card-body p-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="badge bg-danger px-3 py-1 rounded-pill d-flex align-items-center gap-1">
+                <span class="spinner-grow spinner-grow-sm" style="width: 0.5rem; height: 0.5rem;"></span>
+                LIVE NOW
+              </span>
+              <span class="badge bg-light text-dark font-monospace border">{{ live_class_now.room_code }}</span>
+              <span class="badge bg-secondary-subtle text-secondary">{{ live_class_now.get_access_mode_display }}</span>
+            </div>
+            <h3 class="fw-bold text-dark mb-1">{{ live_class_now.title }}</h3>
+            <div class="text-muted small d-flex flex-wrap gap-3">
+              <span><i class="bi bi-book me-1"></i> {{ live_class_now.subject }}</span>
+              <span><i class="bi bi-clock me-1"></i> Started at {{ live_class_now.started_at|time:"h:i A" }}</span>
+              {% if elapsed_minutes is not None %}
+                <span><i class="bi bi-stopwatch me-1"></i> Elapsed: {{ elapsed_minutes }} min</span>
+              {% endif %}
+              <span><i class="bi bi-people me-1"></i> {{ live_class_now.participant_count }} Active Attendees</span>
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'live_room:teacher_live' room_code=live_class_now.room_code %}" class="btn btn-danger btn-lg px-4 rounded-pill fw-bold shadow">
+              <i class="bi bi-camera-video-fill me-1"></i> Join Classroom
+            </a>
+            <a href="{% url 'classrooms:live_detail' live_class_now.pk %}" class="btn btn-outline-secondary btn-lg rounded-pill">
+              Details
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-light border rounded-4 shadow-sm p-3 mb-4 d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-3">
+        <div class="p-2 bg-light rounded-circle text-muted">
+          <i class="bi bi-broadcast text-muted fs-4"></i>
+        </div>
+        <div>
+          <div class="fw-semibold text-dark">No class is live right now.</div>
+          <small class="text-muted">Start an upcoming class from today's schedule or launch a new live room.</small>
+        </div>
+      </div>
+      <a href="{% url 'classrooms:live_create' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+        <i class="bi bi-plus-lg me-1"></i> New Class
+      </a>
+    </div>
+  {% endif %}
+
+  <!-- 4. Today's Classes & Weekly Mini-Calendar -->
+  <div class="row g-4 mb-4">
+    <!-- Today's Classes -->
+    <div class="col-12 col-lg-7">
+      <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+        <div class="card-header bg-white border-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-dark d-flex align-items-center">
+            <i class="bi bi-calendar-day text-primary me-2"></i> Today's Classes
+          </h5>
+          <span class="badge bg-primary-subtle text-primary rounded-pill px-3">{{ today_classes.count }} Today</span>
+        </div>
+
+        <div class="card-body p-4">
+          {% if today_classes %}
+            <div class="list-group list-group-flush gap-2">
+              {% for c in today_classes %}
+                <div class="list-group-item border rounded-3 p-3 transition-all hover-shadow bg-light bg-opacity-25">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        {% if c.status == 'LIVE' %}
+                          <span class="badge bg-danger rounded-pill">&bull; LIVE</span>
+                        {% elif c.status == 'COMPLETED' %}
+                          <span class="badge bg-secondary rounded-pill">ENDED</span>
+                        {% elif c.status == 'CANCELLED' %}
+                          <span class="badge bg-light text-muted border rounded-pill">CANCELLED</span>
+                        {% elif c.is_within_start_window %}
+                          <span class="badge bg-warning text-dark rounded-pill">READY TO START</span>
+                        {% else %}
+                          <span class="badge bg-info-subtle text-info rounded-pill">SCHEDULED</span>
+                        {% endif %}
+                        <span class="badge bg-light text-dark font-monospace border">{{ c.room_code }}</span>
+                      </div>
+                      <h6 class="fw-bold text-dark mb-0">{{ c.title }}</h6>
+                      <div class="text-muted small">
+                        <i class="bi bi-book me-1"></i> {{ c.subject }} &bull;
+                        <i class="bi bi-clock me-1"></i> {{ c.scheduled_time|time:"h:i A" }} &bull;
+                        <i class="bi bi-hourglass-split me-1"></i> {{ c.duration }} mins &bull;
+                        <i class="bi bi-people me-1"></i> {{ c.participant_count }} attendees
+                      </div>
+                    </div>
+
+                    <div class="d-flex gap-1">
+                      {% if c.status == 'LIVE' %}
+                        <a href="{% url 'live_room:teacher_live' room_code=c.room_code %}" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold">
+                          Join Live
+                        </a>
+                      {% elif c.status == 'SCHEDULED' %}
+                        {% if c.is_within_start_window %}
+                          <form action="{% url 'classrooms:live_start' c.pk %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">
+                              <i class="bi bi-play-fill"></i> Start
+                            </button>
+                          </form>
+                        {% endif %}
+                        <a href="{% url 'classrooms:live_detail' c.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                          View
+                        </a>
+                      {% else %}
+                        <a href="{% url 'classrooms:live_detail' c.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                          Details
+                        </a>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <i class="bi bi-calendar-check text-muted fs-1 mb-2 d-block"></i>
+              <p class="text-muted small mb-3">No classes scheduled for today.</p>
+              <a href="{% url 'classrooms:live_create' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                <i class="bi bi-plus-circle me-1"></i> Schedule Class for Today
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Weekly Mini Calendar / Schedule Strip -->
+    <div class="col-12 col-lg-5">
+      <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+        <div class="card-header bg-white border-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-dark d-flex align-items-center">
+            <i class="bi bi-calendar-week text-primary me-2"></i> This Week's Schedule
+          </h5>
+          <a href="{% url 'teacher_calendar_direct' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+            Full Calendar &rarr;
+          </a>
+        </div>
+
+        <div class="card-body p-4">
+          <p class="text-muted small mb-3">
+            Week of {{ start_of_week|date:"M d" }} – {{ end_of_week|date:"M d, Y" }}
+          </p>
+
+          <div class="row g-2 text-center mb-3">
+            {% for day in week_days %}
+              <div class="col">
+                <div class="calendar-day-box p-2 {% if day.is_today %}is-today{% endif %}">
+                  <div class="small fw-semibold {% if day.is_today %}text-primary{% else %}text-muted{% endif %}">
+                    {{ day.day_name }}
+                  </div>
+                  <div class="fs-5 fw-bold {% if day.is_today %}text-primary{% else %}text-dark{% endif %}">
+                    {{ day.day_num }}
+                  </div>
+                  <div>
+                    {% if day.classes_count > 0 %}
+                      <span class="badge bg-primary rounded-pill" style="font-size: 0.65rem;">
+                        {{ day.classes_count }}
+                      </span>
+                    {% else %}
+                      <span class="text-muted" style="font-size: 0.75rem;">&bull;</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="border rounded-3 p-3 bg-light bg-opacity-50">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fw-semibold small text-dark">Schedule Overview</span>
+              <a href="{% url 'teacher_classes_direct' %}?tab=upcoming" class="small text-decoration-none">View Upcoming</a>
+            </div>
+            <p class="small text-muted mb-0">
+              Click into the full calendar for a complete monthly agenda, conflict detection, and interactive scheduling.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Upcoming Classes & Recently Completed Classes -->
+  <div class="row g-4 mb-4">
+    <!-- Upcoming Classes -->
+    <div class="col-12 col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+        <div class="card-header bg-white border-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-dark d-flex align-items-center">
+            <i class="bi bi-clock-history text-info me-2"></i> Upcoming Classes
+          </h5>
+          <a href="{% url 'teacher_classes_direct' %}?tab=upcoming" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
+            View All &rarr;
+          </a>
+        </div>
+
+        <div class="card-body p-4">
+          {% if upcoming_classes %}
+            <div class="list-group list-group-flush gap-2">
+              {% for c in upcoming_classes %}
+                <div class="list-group-item border rounded-3 p-3 transition-all hover-shadow bg-light bg-opacity-25">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-info-subtle text-info rounded-pill">SCHEDULED</span>
+                        <span class="badge bg-light text-dark font-monospace border">{{ c.room_code }}</span>
+                      </div>
+                      <h6 class="fw-bold text-dark mb-0">{{ c.title }}</h6>
+                      <div class="text-muted small">
+                        <i class="bi bi-calendar-event me-1"></i> {{ c.scheduled_date|date:"M d, Y" }} at {{ c.scheduled_time|time:"h:i A" }} &bull;
+                        <i class="bi bi-hourglass-split me-1"></i> {{ c.duration }}m
+                      </div>
+                    </div>
+                    <a href="{% url 'classrooms:live_detail' c.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                      View Class
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-4">
+              <i class="bi bi-calendar-x text-muted fs-2 mb-2 d-block"></i>
+              <p class="text-muted small mb-3">No upcoming classes scheduled.</p>
+              <a href="{% url 'classrooms:live_create' %}" class="btn btn-sm btn-primary rounded-pill px-3">
+                Create New Class
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Recently Completed Classes -->
+    <div class="col-12 col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+        <div class="card-header bg-white border-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-dark d-flex align-items-center">
+            <i class="bi bi-check2-circle text-success me-2"></i> Recent Classes
+          </h5>
+          <a href="{% url 'teacher_classes_direct' %}?tab=past" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
+            History &rarr;
+          </a>
+        </div>
+
+        <div class="card-body p-4">
+          {% if recent_classes %}
+            <div class="list-group list-group-flush gap-2">
+              {% for c in recent_classes %}
+                <div class="list-group-item border rounded-3 p-3 bg-light bg-opacity-25">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-secondary rounded-pill">COMPLETED</span>
+                        <span class="badge bg-light text-dark font-monospace border">{{ c.room_code }}</span>
+                      </div>
+                      <h6 class="fw-bold text-dark mb-0">{{ c.title }}</h6>
+                      <div class="text-muted small">
+                        <i class="bi bi-calendar-check me-1"></i> {{ c.scheduled_date|date:"M d, Y" }} &bull;
+                        <i class="bi bi-hourglass-split me-1"></i> {{ c.duration|default:60 }} mins &bull;
+                        <i class="bi bi-people me-1"></i> {% if c.attendance_count %}{{ c.attendance_count }}{% else %}{{ c.participant_count|default:0 }}{% endif %} attended
+                      </div>
+                    </div>
+                    <a href="{% url 'classrooms:live_detail' c.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                      View Details
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-4">
+              <i class="bi bi-clock-history text-muted fs-2 mb-2 d-block"></i>
+              <p class="text-muted small mb-0">No completed classes yet.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Notifications Preview & Instructor Profile Summary -->
+  <div class="row g-4">
+    <!-- Notifications Preview -->
+    <div class="col-12 col-lg-7">
+      <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+        <div class="card-header bg-white border-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-dark d-flex align-items-center">
+            <i class="bi bi-bell text-warning me-2"></i> Recent Notifications
+          </h5>
+          <a href="{% url 'notifications:list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
+            View All Notifications &rarr;
+          </a>
+        </div>
+
+        <div class="card-body p-4">
+          {% if latest_notifications %}
+            <div class="list-group list-group-flush gap-2">
+              {% for notif in latest_notifications %}
+                <div class="list-group-item border-0 p-3 rounded-3 {% if not notif.is_read %}bg-primary bg-opacity-10 border-start border-primary border-4{% else %}bg-light{% endif %}">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h6 class="fw-bold text-dark mb-1">{{ notif.title }}</h6>
+                      <p class="small text-muted mb-1">{{ notif.message }}</p>
+                      <small class="text-muted">{{ notif.created_at|timesince }} ago</small>
+                    </div>
+                    {% if not notif.is_read %}
+                      <span class="badge bg-primary rounded-pill">New</span>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-4">
+              <i class="bi bi-bell-slash text-muted fs-2 mb-2 d-block"></i>
+              <p class="text-muted small mb-0">You're all caught up! No notifications.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructor Profile Summary -->
+    <div class="col-12 col-lg-5">
+      <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+        <div class="card-header bg-white border-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-dark d-flex align-items-center">
+            <i class="bi bi-person-badge text-primary me-2"></i> Instructor Profile
+          </h5>
+          <a href="{% url 'accounts:teacher_profile' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+            Edit Profile
+          </a>
+        </div>
+
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            {% if teacher.avatar_url %}
+              <img src="{{ teacher.avatar_url }}" alt="{{ teacher.get_full_name }}" class="rounded-circle border border-2 border-primary" style="width: 64px; height: 64px; object-fit: cover;">
+            {% else %}
+              <div class="avatar-circle border border-2 border-primary bg-primary text-white" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                {{ teacher.first_name|default:teacher.username|make_list|first|upper }}
+              </div>
+            {% endif %}
+            <div>
+              <h5 class="fw-bold text-dark mb-0">{{ teacher.get_full_name|default:teacher.username }}</h5>
+              <div class="text-muted small"><i class="bi bi-envelope me-1"></i> {{ teacher.email }}</div>
+              <span class="badge badge-role-teacher px-2 py-1 mt-1">Instructor</span>
+            </div>
+          </div>
+
+          <p class="small text-secondary mb-3">
+            {{ teacher.bio|default:"Instructor at TeachLive Virtual Learning Platform." }}
+          </p>
+
+          <ul class="list-group list-group-flush small">
+            <li class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Total Classes</span>
+              <span class="fw-semibold text-dark">{{ total_classes }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Account Status</span>
+              <span class="badge bg-success-subtle text-success">Active &bull; Verified</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Member Since</span>
+              <span class="text-dark fw-semibold">{{ teacher.date_joined|date:"F Y" }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Role Permissions</span>
+              <span class="text-dark fw-semibold">Teacher / Host</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

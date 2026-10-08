@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance - {{ classroom.name }} - LiveClass{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h2 class="fw-bold mb-0">Attendance Sessions</h2>
+        <span class="badge bg-secondary-subtle text-secondary">{{ classroom.code }}</span>
+      </div>
+      <p class="text-secondary mb-0">
+        Classroom: <a href="{% url 'classrooms:detail' classroom.id %}" class="fw-semibold text-decoration-none">{{ classroom.name }}</a>
+      </p>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{% url 'classrooms:detail' classroom.id %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Classroom Hub
+      </a>
+      {% if is_teacher %}
+        <a href="{% url 'attendance:take' classroom.id %}" class="btn btn-primary-gradient">
+          <i class="bi bi-plus-circle me-1"></i> Log New Session
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if not is_teacher and attendance_percentage is not None %}
+    <div class="card card-modern p-4 mb-4 border-start border-success border-4">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h5 class="fw-bold mb-1">Your Personal Attendance in this Classroom</h5>
+          <p class="text-secondary small mb-0">Track your attendance compliance across all completed lecture sessions.</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-2 mt-md-0">
+          <span class="display-6 fw-bold text-success">{{ attendance_percentage }}%</span>
+          <div class="small text-muted">Attendance Rate</div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="card card-modern p-4">
+    <h5 class="fw-bold mb-3 d-flex align-items-center">
+      <i class="bi bi-clock-history text-primary me-2"></i> Session History
+    </h5>
+
+    {% if sessions %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small">
+            <tr>
+              <th>Date</th>
+              <th>Topic / Lecture</th>
+              <th>Logged By</th>
+              <th>Present Count</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in sessions %}
+              <tr>
+                <td class="fw-bold">{{ s.date }}</td>
+                <td>{{ s.topic|default:"Standard Class Session" }}</td>
+                <td class="small text-secondary">{{ s.created_by.get_full_name|default:s.created_by.username }}</td>
+                <td>
+                  <span class="badge bg-success-subtle text-success">
+                    {{ s.total_present }} / {{ s.total_records }} Students
+                  </span>
+                </td>
+                <td>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#sessionDetails{{ s.id }}">
+                    <i class="bi bi-eye me-1"></i> Details
+                  </button>
+                </td>
+              </tr>
+              <tr class="collapse" id="sessionDetails{{ s.id }}">
+                <td colspan="5" class="bg-light p-3">
+                  <div class="small fw-bold text-secondary mb-2">Student Roll Records:</div>
+                  <div class="row g-2">
+                    {% for rec in s.records.all %}
+                      <div class="col-md-4 col-sm-6">
+                        <div class="p-2 border rounded bg-white d-flex justify-content-between align-items-center">
+                          <span class="small">{{ rec.student.get_full_name|default:rec.student.username }}</span>
+                          <span class="badge {% if rec.status == 'PRESENT' %}badge-status-present{% elif rec.status == 'ABSENT' %}badge-status-absent{% elif rec.status == 'LATE' %}badge-status-late{% else %}badge-status-excused{% endif %}">
+                            {{ rec.get_status_display }}
+                          </span>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-5 text-center text-muted">
+        <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+        No attendance sessions have been logged yet for this classroom.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Attendance Report - LiveClass{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4 pb-3 border-bottom">
+    <h2 class="fw-bold mb-1">My Attendance Report</h2>
+    <p class="text-secondary mb-0">Overview of your session attendance across all enrolled virtual classrooms.</p>
+  </div>
+
+  {% if class_stats %}
+    <div class="row g-4 mb-4">
+      {% for item in class_stats %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card card-modern p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-primary-subtle text-primary">{{ item.classroom.code }}</span>
+              <span class="fw-bold {% if item.percentage >= 75 %}text-success{% else %}text-danger{% endif %}">
+                {{ item.percentage }}%
+              </span>
+            </div>
+
+            <h5 class="fw-bold mb-3">{{ item.classroom.name }}</h5>
+
+            <div class="progress mb-3" style="height: 8px;">
+              <div class="progress-bar {% if item.percentage >= 75 %}bg-success{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ item.percentage }}%;"></div>
+            </div>
+
+            <div class="row g-2 text-center small mb-3">
+              <div class="col-3">
+                <div class="p-2 bg-light rounded">
+                  <div class="fw-bold text-dark">{{ item.total }}</div>
+                  <div class="text-muted" style="font-size: 0.75rem;">Total</div>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="p-2 bg-success-subtle rounded">
+                  <div class="fw-bold text-success">{{ item.present }}</div>
+                  <div class="text-muted" style="font-size: 0.75rem;">Present</div>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="p-2 bg-warning-subtle rounded">
+                  <div class="fw-bold text-warning">{{ item.late }}</div>
+                  <div class="text-muted" style="font-size: 0.75rem;">Late</div>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="p-2 bg-danger-subtle rounded">
+                  <div class="fw-bold text-danger">{{ item.absent }}</div>
+                  <div class="text-muted" style="font-size: 0.75rem;">Absent</div>
+                </div>
+              </div>
+            </div>
+
+            <a href="{% url 'attendance:classroom_sessions' item.classroom.id %}" class="btn btn-outline-secondary btn-sm mt-auto">
+              View Logged Dates &rarr;
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card card-modern p-5 text-center text-muted">
+      <i class="bi bi-calendar-x fs-1 d-block mb-3"></i>
+      <h5>No Attendance Records</h5>
+      <p class="small">You are not enrolled in any classrooms or no attendance has been recorded yet.</p>
+      <div>
+        <a href="{% url 'classrooms:list' %}" class="btn btn-outline-primary btn-sm">Explore Classrooms</a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

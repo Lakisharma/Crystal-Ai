@@ -1,0 +1,162 @@
+{% extends 'admin_dashboard/base_admin.html' %}
+
+{% block title %}Teacher: {{ teacher.get_full_name|default:teacher.username }} - TeachLive Admin{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'admin_dashboard:teachers' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i> Back to Teachers Directory
+  </a>
+</div>
+
+<!-- Teacher Profile Header Card -->
+<div class="card border-0 shadow-sm rounded-3 mb-4">
+  <div class="card-body p-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        {% if teacher.avatar_url %}
+          <img src="{{ teacher.avatar_url }}" alt="{{ teacher.username }}" class="rounded-circle shadow-sm" style="width: 72px; height: 72px; object-fit: cover;">
+        {% else %}
+          <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold fs-3 shadow-sm" style="width: 72px; height: 72px;">
+            {{ teacher.username|make_list|first|upper }}
+          </div>
+        {% endif %}
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <h4 class="fw-bold mb-0 text-dark">{{ teacher.get_full_name|default:teacher.username }}</h4>
+            {% if teacher.is_active %}
+              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Active</span>
+            {% else %}
+              <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">Deactivated</span>
+            {% endif %}
+          </div>
+          <div class="text-muted small mt-1">
+            <span class="me-3"><i class="bi bi-envelope me-1"></i>{{ teacher.email }}</span>
+            {% if teacher.phone_number %}
+              <span class="me-3"><i class="bi bi-telephone me-1"></i>{{ teacher.phone_number }}</span>
+            {% endif %}
+            <span><i class="bi bi-calendar-event me-1"></i>Joined {{ teacher.date_joined|date:"M d, Y" }}</span>
+          </div>
+          {% if teacher.bio %}
+            <p class="text-secondary small mt-2 mb-0">{{ teacher.bio }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Action: Activate / Deactivate with Confirmation -->
+      <div>
+        <form method="post" action="{% url 'admin_dashboard:teacher_toggle_status' pk=teacher.pk %}" onsubmit="return confirm('Are you sure you want to {% if teacher.is_active %}deactivate{% else %}activate{% endif %} this teacher account?');">
+          {% csrf_token %}
+          {% if teacher.is_active %}
+            <button type="submit" class="btn btn-outline-danger btn-sm px-3 shadow-sm">
+              <i class="bi bi-person-x me-1"></i> Deactivate Teacher
+            </button>
+          {% else %}
+            <button type="submit" class="btn btn-success btn-sm px-3 shadow-sm">
+              <i class="bi bi-person-check me-1"></i> Activate Teacher
+            </button>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-2">
+    <div class="stat-card">
+      <small class="text-muted fw-semibold">Total Classes</small>
+      <div class="fs-3 fw-bold text-dark mt-1">{{ total_classes }}</div>
+      <small class="text-muted" style="font-size: 0.72rem;">Sessions Conducted</small>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-2">
+    <div class="stat-card">
+      <small class="text-danger fw-semibold">Live Classes</small>
+      <div class="fs-3 fw-bold text-danger mt-1">{{ live_classes }}</div>
+      <small class="text-danger opacity-75" style="font-size: 0.72rem;">Active Streaming</small>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <small class="text-secondary fw-semibold">Completed Classes</small>
+      <div class="fs-3 fw-bold text-dark mt-1">{{ completed_classes }}</div>
+      <small class="text-muted" style="font-size: 0.72rem;">Successfully Finished</small>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-2">
+    <div class="stat-card">
+      <small class="text-warning fw-semibold">Cancelled Classes</small>
+      <div class="fs-3 fw-bold text-dark mt-1">{{ cancelled_classes }}</div>
+      <small class="text-muted" style="font-size: 0.72rem;">Cancelled</small>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <small class="text-primary fw-semibold">Total Students Reached</small>
+      <div class="fs-3 fw-bold text-primary mt-1">{{ total_students_reached }}</div>
+      <small class="text-muted" style="font-size: 0.72rem;">Distinct Participants</small>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Classes Table -->
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-header bg-white border-bottom border-light py-3">
+    <div class="fw-bold fs-6">
+      <i class="bi bi-camera-video me-1 text-primary"></i> Classes Conducted by {{ teacher.get_full_name|default:teacher.username }}
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light small text-muted">
+        <tr>
+          <th>Class Title</th>
+          <th>Subject</th>
+          <th>Room Code</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Status</th>
+          <th>Participants</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in recent_classes %}
+          <tr>
+            <td class="fw-semibold text-dark">{{ c.title }}</td>
+            <td class="small">{{ c.subject }}</td>
+            <td><code class="text-primary fw-bold">{{ c.room_code }}</code></td>
+            <td class="small">{{ c.scheduled_date }}</td>
+            <td class="small text-muted">{{ c.scheduled_time|time:"H:i" }}</td>
+            <td>
+              {% if c.status == 'LIVE' %}
+                <span class="badge bg-danger">LIVE</span>
+              {% elif c.status == 'SCHEDULED' %}
+                <span class="badge bg-primary">Scheduled</span>
+              {% elif c.status == 'COMPLETED' %}
+                <span class="badge bg-secondary">Completed</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">{{ c.get_status_display }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ c.participant_count }}</span>
+            </td>
+            <td class="text-end">
+              <a href="{% url 'admin_dashboard:class_detail' pk=c.pk %}" class="btn btn-sm btn-outline-primary py-1 px-2.5">
+                View Class
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-4 text-muted small">No classes found for this teacher.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

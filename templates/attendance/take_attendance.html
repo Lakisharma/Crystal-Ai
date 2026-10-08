@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Log Attendance - {{ classroom.name }} - LiveClass{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4">
+    <a href="{% url 'attendance:classroom_sessions' classroom.id %}" class="text-secondary small text-decoration-none">
+      <i class="bi bi-arrow-left me-1"></i> Back to Attendance Logs
+    </a>
+    <div class="d-flex align-items-center gap-2 mt-2">
+      <h2 class="fw-bold mb-0">Record Classroom Attendance</h2>
+      <span class="badge bg-primary-subtle text-primary">{{ classroom.code }}</span>
+    </div>
+    <p class="text-secondary small">Classroom: <strong>{{ classroom.name }}</strong></p>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="card card-modern p-4 mb-4">
+      <h5 class="fw-bold mb-3 border-bottom pb-2">Session Parameters</h5>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold text-secondary">Session Date *</label>
+          <input type="date" name="date" class="form-control" value="{{ today|date:'Y-m-d' }}" required>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label small fw-semibold text-secondary">Lecture / Topic Title</label>
+          <input type="text" name="topic" class="form-control" placeholder="e.g. Chapter 4: Binary Trees & Heaps">
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-modern p-4 mb-4">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3 border-bottom pb-2">
+        <h5 class="fw-bold mb-0">Enrolled Students Roll Call ({{ students.count }})</h5>
+        <div class="btn-group btn-group-sm" role="group">
+          <button type="button" class="btn btn-outline-success" id="markAllPresentBtn">
+            <i class="bi bi-check-all me-1"></i> Mark All Present
+          </button>
+        </div>
+      </div>
+
+      {% if students %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small">
+              <tr>
+                <th style="width: 30%;">Student</th>
+                <th style="width: 45%;">Attendance Status</th>
+                <th style="width: 25%;">Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for student in students %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <div class="avatar-circle me-2" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                        {{ student.username|make_list|first|upper }}
+                      </div>
+                      <div>
+                        <div class="fw-bold small">{{ student.get_full_name|default:student.username }}</div>
+                        <small class="text-muted">{{ student.email }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      {% for val, label in status_choices %}
+                        <input type="radio" class="btn-check status-radio-{{ val }}" name="status_{{ student.id }}" id="status_{{ student.id }}_{{ val }}" value="{{ val }}" {% if val == 'PRESENT' %}checked{% endif %}>
+                        <label class="btn btn-outline-secondary" for="status_{{ student.id }}_{{ val }}">{{ label }}</label>
+                      {% endfor %}
+                    </div>
+                  </td>
+                  <td>
+                    <input type="text" name="remarks_{{ student.id }}" class="form-control form-control-sm" placeholder="Optional notes...">
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-4 text-center text-muted small">
+          No students currently enrolled in this classroom to take attendance for.
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+      <a href="{% url 'classrooms:detail' classroom.id %}" class="btn btn-outline-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary-gradient px-4" {% if not students %}disabled{% endif %}>
+        <i class="bi bi-check2-circle me-1"></i> Save Attendance Session
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('markAllPresentBtn')?.addEventListener('click', () => {
+  document.querySelectorAll('.status-radio-PRESENT').forEach(radio => {
+    radio.checked = true;
+  });
+});
+</script>
+{% endblock %}
