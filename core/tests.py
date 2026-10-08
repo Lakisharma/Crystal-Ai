@@ -9,8 +9,8 @@ class CoreViewsTests(TestCase):
         client = Client()
         res = client.get(reverse('core:home'))
         self.assertEqual(res.status_code, 200)
-        self.assertContains(res, 'LiveClass')
-        self.assertContains(res, 'Zero Downloads Required')
+        self.assertContains(res, 'TeachLive')
+        self.assertContains(res, 'Teach Live. Learn Live.')
 
     def test_about_page(self):
         client = Client()
