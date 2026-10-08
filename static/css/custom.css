@@ -61,32 +61,114 @@ main {
 }
 
 /* ============================================================
-   Navbar & Header
+   Navbar & Header (Crystal AI Modern SaaS Design)
    ============================================================ */
 .navbar-custom {
-  background: #0f172a;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.96) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+  z-index: 1030;
 }
 
-.navbar-brand {
-  font-size: 1.25rem;
-  letter-spacing: -0.03em;
+.crystal-brand-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 50%, #06b6d4 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1.15rem;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.nav-link {
+.navbar-brand:hover .crystal-brand-icon {
+  transform: scale(1.06);
+  box-shadow: 0 0 24px rgba(59, 130, 246, 0.7);
+}
+
+.brand-text-name {
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 1.28rem;
+  letter-spacing: -0.02em;
+}
+
+.brand-text-ai {
+  background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 50%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  font-size: 1.28rem;
+  letter-spacing: 0.02em;
+}
+
+.modern-nav-link {
   font-weight: 500;
   font-size: 0.92rem;
-  color: #94a3b8 !important;
-  transition: color 0.15s ease-in-out;
+  color: #cbd5e1 !important;
+  padding: 0.42rem 0.85rem !important;
+  border-radius: 9999px;
+  transition: all 0.18s ease-in-out;
+  display: inline-flex;
+  align-items: center;
 }
 
-.nav-link:hover, .nav-link.active {
+.modern-nav-link:hover {
   color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.nav-link i {
-  font-size: 1rem;
-  vertical-align: -0.1em;
+.modern-nav-link.active {
+  color: #ffffff !important;
+  background: rgba(59, 130, 246, 0.22);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.modern-nav-dropdown {
+  font-weight: 500;
+  font-size: 0.92rem;
+  color: #e2e8f0 !important;
+  padding: 0.42rem 0.85rem !important;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.18s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+}
+
+.modern-nav-dropdown:hover, .modern-nav-dropdown[aria-expanded="true"] {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.navbar-custom .dropdown-menu {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  padding: 0.5rem;
+}
+
+.navbar-custom .dropdown-item {
+  color: #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.navbar-custom .dropdown-item:hover, .navbar-custom .dropdown-item:focus {
+  color: #ffffff;
+  background: rgba(59, 130, 246, 0.18);
 }
 
 /* ============================================================
