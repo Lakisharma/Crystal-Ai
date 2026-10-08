@@ -1,16 +1,22 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Server Error (500) - LiveClass{% endblock %}
+{% block title %}Server Error (500) — TeachLive{% endblock %}
+
+{% block meta_robots %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
 
 {% block content %}
 <div class="container py-5 text-center">
-  <div class="py-5">
-    <div class="display-1 fw-bold text-danger mb-3">500</div>
-    <h2 class="fw-bold mb-2">Internal Server Error</h2>
-    <p class="text-secondary mb-4">Something went wrong on our end. Please try again or return to the homepage.</p>
-    <a href="{% url 'core:home' %}" class="btn btn-primary-gradient px-4">
-      <i class="bi bi-house me-1"></i> Return Home
+  <div class="py-5 max-w-600 mx-auto">
+    <div class="display-1 fw-bold text-danger mb-2">500</div>
+    <h1 class="h2 fw-bold text-dark mb-2">Something went wrong</h1>
+    <p class="text-secondary mb-4 small">
+      An unexpected error occurred while processing your request. Our technical staff has been notified.
+    </p>
+    <a href="{% url 'core:home' %}" class="btn btn-primary px-4 fw-semibold shadow-sm">
+      <i class="bi bi-house me-1"></i> Back to Home
     </a>
   </div>
 </div>

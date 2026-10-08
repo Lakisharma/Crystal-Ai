@@ -1,16 +1,22 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Page Not Found (404) - LiveClass{% endblock %}
+{% block title %}Page Not Found (404) — TeachLive{% endblock %}
+
+{% block meta_robots %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
 
 {% block content %}
 <div class="container py-5 text-center">
-  <div class="py-5">
-    <div class="display-1 fw-bold text-primary mb-3">404</div>
-    <h2 class="fw-bold mb-2">Classroom or Page Not Found</h2>
-    <p class="text-secondary mb-4">The page or resource you requested may have moved or does not exist.</p>
-    <a href="{% url 'core:home' %}" class="btn btn-primary-gradient px-4">
-      <i class="bi bi-house me-1"></i> Return Home
+  <div class="py-5 max-w-600 mx-auto">
+    <div class="display-1 fw-bold text-primary mb-2">404</div>
+    <h1 class="h2 fw-bold text-dark mb-2">Page not found</h1>
+    <p class="text-secondary mb-4 small">
+      The classroom, session, or resource you are looking for does not exist or may have been moved.
+    </p>
+    <a href="{% url 'core:home' %}" class="btn btn-primary px-4 fw-semibold shadow-sm">
+      <i class="bi bi-house me-1"></i> Back to Home
     </a>
   </div>
 </div>

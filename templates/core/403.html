@@ -1,16 +1,22 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Access Denied (403) - TeachLive{% endblock %}
+{% block title %}Access Denied (403) — TeachLive{% endblock %}
+
+{% block meta_robots %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
 
 {% block content %}
 <div class="container py-5 text-center">
-  <div class="py-5">
-    <div class="display-1 fw-bold text-danger mb-3">403</div>
-    <h2 class="fw-bold mb-2">Access Denied / Permission Denied</h2>
-    <p class="text-secondary mb-4">You do not have permission to access this classroom, resource, or administrative action.</p>
-    <a href="{% url 'core:home' %}" class="btn btn-primary-gradient px-4">
-      <i class="bi bi-house me-1"></i> Return Home
+  <div class="py-5 max-w-600 mx-auto">
+    <div class="display-1 fw-bold text-danger mb-2">403</div>
+    <h1 class="h2 fw-bold text-dark mb-2">Access denied</h1>
+    <p class="text-secondary mb-4 small">
+      You don't have permission to access this page, live classroom, or administrative resource.
+    </p>
+    <a href="{% url 'core:home' %}" class="btn btn-primary px-4 fw-semibold shadow-sm">
+      <i class="bi bi-house me-1"></i> Back to Home
     </a>
   </div>
 </div>

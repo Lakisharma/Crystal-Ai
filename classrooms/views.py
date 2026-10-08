@@ -508,25 +508,32 @@ class TeacherClassesListView(TeacherRequiredMixin, View):
 
         all_classes = user.live_classes.all()
         today_count = all_classes.filter(scheduled_date=today).count()
+        live_count = all_classes.filter(status=LiveClass.Status.LIVE).count()
+        scheduled_count = all_classes.filter(status=LiveClass.Status.SCHEDULED).count()
         upcoming_count = all_classes.filter(
             Q(scheduled_date__gt=today) |
             Q(scheduled_date=today, status__in=[LiveClass.Status.SCHEDULED, LiveClass.Status.LIVE])
         ).filter(status__in=[LiveClass.Status.SCHEDULED, LiveClass.Status.LIVE]).count()
-        past_count = all_classes.filter(
+        completed_count = all_classes.filter(
             Q(status__in=[LiveClass.Status.COMPLETED, 'ENDED']) |
             Q(scheduled_date__lt=today, status=LiveClass.Status.SCHEDULED)
         ).count()
+        past_count = completed_count
         cancelled_count = all_classes.filter(status=LiveClass.Status.CANCELLED).count()
 
         # Tab filtering
         if tab == 'today':
             qs = base_qs.filter(scheduled_date=today).order_by('scheduled_time')
+        elif tab == 'live':
+            qs = base_qs.filter(status=LiveClass.Status.LIVE).order_by('-started_at')
+        elif tab == 'scheduled':
+            qs = base_qs.filter(status=LiveClass.Status.SCHEDULED).order_by('scheduled_date', 'scheduled_time')
         elif tab == 'upcoming':
             qs = base_qs.filter(
                 Q(scheduled_date__gt=today) |
                 Q(scheduled_date=today, status__in=[LiveClass.Status.SCHEDULED, LiveClass.Status.LIVE])
             ).filter(status__in=[LiveClass.Status.SCHEDULED, LiveClass.Status.LIVE]).order_by('scheduled_date', 'scheduled_time')
-        elif tab == 'past':
+        elif tab in ['completed', 'past']:
             qs = base_qs.filter(
                 Q(status__in=[LiveClass.Status.COMPLETED, 'ENDED']) |
                 Q(scheduled_date__lt=today, status=LiveClass.Status.SCHEDULED)
@@ -579,7 +586,10 @@ class TeacherClassesListView(TeacherRequiredMixin, View):
             'selected_subject': subject_filter,
             'all_subjects': all_subjects,
             'today_count': today_count,
+            'live_count': live_count,
+            'scheduled_count': scheduled_count,
             'upcoming_count': upcoming_count,
+            'completed_count': completed_count,
             'past_count': past_count,
             'cancelled_count': cancelled_count,
             'total_count': all_classes.count(),

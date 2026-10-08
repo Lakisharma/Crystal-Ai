@@ -1,49 +1,75 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}About - LiveClass Platform{% endblock %}
+{% block title %}About Us — TeachLive{% endblock %}
+{% block meta_description %}Learn about TeachLive: the premier live video classroom platform designed for schools, universities, and tutors. Live video, automated attendance, and interactive chat.{% endblock %}
+
+{% block meta_robots %}
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
   <div class="row justify-content-center">
     <div class="col-lg-9">
-      <div class="card card-modern p-5 border-0 shadow">
-        <h1 class="fw-bold mb-3">About <span class="brand-gradient">LiveClass</span></h1>
-        <p class="lead text-secondary mb-4">
-          LiveClass is an enterprise-grade virtual learning ecosystem engineered for schools, universities, and academic coaching centers.
-        </p>
-
-        <h5 class="fw-bold mt-4 mb-2">Our Philosophy: Browser-First Web Access</h5>
-        <p class="text-secondary">
-          Students and teachers should never be blocked by app stores, device operating system incompatibilities, or complicated installations. LiveClass runs entirely in standard desktop and laptop browsers with lightning performance.
-        </p>
-
-        <div class="row g-4 my-3">
-          <div class="col-md-6">
-            <div class="p-3 bg-light rounded-3">
-              <h6 class="fw-bold text-primary"><i class="bi bi-person-workspace me-2"></i> For Instructors</h6>
-              <p class="small text-secondary mb-0">Create courses, manage timetable schedules, take roll call in seconds, and lead academic discussion forums.</p>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="p-3 bg-light rounded-3">
-              <h6 class="fw-bold text-info"><i class="bi bi-backpack me-2"></i> For Students</h6>
-              <p class="small text-secondary mb-0">Join classrooms with a simple 6-character code, keep track of attendance stats, and collaborate in class chat.</p>
-            </div>
-          </div>
+      <div class="card card-modern p-4 p-md-5 border-0 shadow-sm">
+        <div class="mb-4 pb-3 border-bottom text-center">
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill mb-2">About TeachLive</span>
+          <h1 class="h2 fw-bold text-dark mb-2">Teach Live. Learn Live.</h1>
+          <p class="lead text-secondary fs-6 mb-0">
+            TeachLive is a modern SaaS virtual education platform connecting instructors and students through seamless real-time video classrooms.
+          </p>
         </div>
 
-        <h5 class="fw-bold mt-4 mb-2">Technical Foundations</h5>
-        <ul class="text-secondary small">
-          <li class="mb-1"><strong>Python & Django 5:</strong> Rock-solid security, custom user authentication, and ORM abstractions.</li>
-          <li class="mb-1"><strong>Django REST Framework:</strong> Clean API endpoints for modern frontend interoperability.</li>
-          <li class="mb-1"><strong>Bootstrap 5 & Vanilla JS:</strong> Fast, mobile-responsive, zero-heavy-frontend-bloat design.</li>
-          <li class="mb-1"><strong>PostgreSQL Ready:</strong> Seamless switch from local SQLite to cloud-hosted PostgreSQL with zero code changes.</li>
-        </ul>
+        <div class="text-secondary" style="line-height: 1.7;">
+          <h5 class="fw-bold text-dark h6 mt-3">Our Mission</h5>
+          <p class="small">
+            Online education should be effortless, secure, and engaging. We built TeachLive to eliminate high-friction downloads, complicated meeting links, and fragmented attendance recording. With WebRTC-powered live video directly inside modern web browsers, teachers start teaching in one click and students focus on learning.
+          </p>
 
-        <div class="mt-4 pt-3 border-top d-flex gap-3">
-          <a href="{% url 'accounts:teacher_register' %}" class="btn btn-primary-gradient">Join as Teacher</a>
-          <a href="{% url 'accounts:student_register' %}" class="btn btn-outline-primary">Join as Student</a>
+          <div class="row g-4 my-3">
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded-3 border h-100">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="p-2 rounded bg-primary text-white me-2">
+                    <i class="bi bi-person-workspace"></i>
+                  </div>
+                  <h6 class="fw-bold mb-0 text-dark">For Educators</h6>
+                </div>
+                <p class="small text-secondary mb-0">Host live classes with audio/video and screen share, take instant roll call with automated attendance duration tracking, manage student enrollment, and download CSV reports.</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded-3 border h-100">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="p-2 rounded bg-info text-white me-2">
+                    <i class="bi bi-mortarboard-fill"></i>
+                  </div>
+                  <h6 class="fw-bold mb-0 text-dark">For Students</h6>
+                </div>
+                <p class="small text-secondary mb-0">Join live classrooms securely via 6-character room codes or Google one-click login, participate in real-time moderated chat, and check attendance metrics across all courses.</p>
+              </div>
+            </div>
+          </div>
+
+          <h5 class="fw-bold text-dark h6 mt-4">Core Technology Stack</h5>
+          <ul class="text-secondary small">
+            <li class="mb-2"><strong>LiveKit & WebRTC:</strong> High-definition video and low-latency audio streaming directly in Google Chrome, Microsoft Edge, Mozilla Firefox, and Apple Safari.</li>
+            <li class="mb-2"><strong>Python & Django 5:</strong> Robust role-based access control, cryptographic session handling, and production-tested security hardening.</li>
+            <li class="mb-2"><strong>Automated Attendance Engine:</strong> Real-time duration tracking, presence percentage thresholds, and CSV analytics.</li>
+            <li class="mb-2"><strong>Responsive Modern UI:</strong> Clean Bootstrap 5 design optimized across smartphones, tablets, and desktop workstations.</li>
+          </ul>
+        </div>
+
+        <div class="mt-4 pt-3 border-top d-flex flex-wrap gap-3 justify-content-between align-items-center">
+          <a href="{% url 'core:home' %}" class="small text-secondary text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i> Back to Homepage
+          </a>
+          <div class="d-flex gap-2">
+            <a href="{% url 'accounts:teacher_register' %}" class="btn btn-primary btn-sm px-3 fw-semibold">Start Teaching</a>
+            <a href="{% url 'accounts:student_register' %}" class="btn btn-outline-primary btn-sm px-3 fw-semibold">Join as Student</a>
+          </div>
         </div>
       </div>
     </div>

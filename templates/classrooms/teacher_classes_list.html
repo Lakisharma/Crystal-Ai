@@ -35,22 +35,22 @@
     <ul class="nav nav-pills gap-2 flex-wrap">
       <li class="nav-item">
         <a class="nav-link py-2 px-3 fw-semibold {% if active_tab == 'all' %}active bg-dark text-white{% else %}text-secondary{% endif %}" href="{% url 'classrooms:teacher_classes' %}?tab=all{% if search_query %}&q={{ search_query }}{% endif %}">
-          All Classes <span class="badge bg-secondary-subtle text-secondary ms-1">{{ total_count }}</span>
+          All <span class="badge bg-secondary-subtle text-secondary ms-1">{{ total_count }}</span>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link py-2 px-3 fw-semibold {% if active_tab == 'today' %}active bg-primary text-white{% else %}text-secondary{% endif %}" href="{% url 'classrooms:teacher_classes' %}?tab=today{% if search_query %}&q={{ search_query }}{% endif %}">
-          <i class="bi bi-calendar-event me-1"></i> Today's Classes <span class="badge bg-primary-subtle text-primary ms-1">{{ today_count }}</span>
+        <a class="nav-link py-2 px-3 fw-semibold {% if active_tab == 'scheduled' or active_tab == 'upcoming' %}active bg-primary text-white{% else %}text-secondary{% endif %}" href="{% url 'classrooms:teacher_classes' %}?tab=scheduled{% if search_query %}&q={{ search_query }}{% endif %}">
+          <i class="bi bi-clock-history me-1"></i> Scheduled <span class="badge bg-primary-subtle text-primary ms-1">{{ scheduled_count }}</span>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link py-2 px-3 fw-semibold {% if active_tab == 'upcoming' %}active bg-info text-white{% else %}text-secondary{% endif %}" href="{% url 'classrooms:teacher_classes' %}?tab=upcoming{% if search_query %}&q={{ search_query }}{% endif %}">
-          <i class="bi bi-clock-history me-1"></i> Upcoming <span class="badge bg-info-subtle text-info ms-1">{{ upcoming_count }}</span>
+        <a class="nav-link py-2 px-3 fw-semibold {% if active_tab == 'live' %}active bg-danger text-white{% else %}text-secondary{% endif %}" href="{% url 'classrooms:teacher_classes' %}?tab=live{% if search_query %}&q={{ search_query }}{% endif %}">
+          <i class="bi bi-broadcast me-1"></i> Live <span class="badge bg-danger-subtle text-danger ms-1">{{ live_count }}</span>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link py-2 px-3 fw-semibold {% if active_tab == 'past' %}active bg-success text-white{% else %}text-secondary{% endif %}" href="{% url 'classrooms:teacher_classes' %}?tab=past{% if search_query %}&q={{ search_query }}{% endif %}">
-          <i class="bi bi-check2-circle me-1"></i> Past & Completed <span class="badge bg-success-subtle text-success ms-1">{{ past_count }}</span>
+        <a class="nav-link py-2 px-3 fw-semibold {% if active_tab == 'completed' or active_tab == 'past' %}active bg-success text-white{% else %}text-secondary{% endif %}" href="{% url 'classrooms:teacher_classes' %}?tab=completed{% if search_query %}&q={{ search_query }}{% endif %}">
+          <i class="bi bi-check2-circle me-1"></i> Completed <span class="badge bg-success-subtle text-success ms-1">{{ completed_count }}</span>
         </a>
       </li>
       <li class="nav-item">

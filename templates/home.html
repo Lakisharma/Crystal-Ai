@@ -1,82 +1,101 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}LiveClass - Modern Web-First Virtual Learning Platform{% endblock %}
+{% block title %}TeachLive — Teach Live. Learn Live.{% endblock %}
+{% block meta_description %}TeachLive is a modern SaaS virtual education platform with browser-native WebRTC live video classes, automated attendance tracking, and interactive student engagement.{% endblock %}
+
+{% block meta_robots %}
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-gradient py-5 mb-5 rounded-4 shadow-sm border mx-lg-4">
-  <div class="container py-4">
+<section class="py-5 mb-5 bg-white border-bottom">
+  <div class="container py-3 py-lg-4">
     <div class="row align-items-center g-5">
       <div class="col-lg-7">
-        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-3 rounded-pill bg-primary bg-opacity-10 text-primary fw-semibold small">
-          <i class="bi bi-browser-chrome"></i> 100% Web Browser Native • Zero Downloads Required
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-3 rounded-pill bg-primary-subtle text-primary fw-semibold small border border-primary-subtle">
+          <i class="bi bi-camera-video-fill"></i> WebRTC Powered • Zero Software Downloads
         </div>
-        <h1 class="display-4 fw-extrabold tracking-tight mb-3">
-          Virtual Learning Built for the <span class="brand-gradient">Modern Web</span>
+        <h1 class="display-4 fw-extrabold text-dark tracking-tight mb-2">
+          TeachLive
         </h1>
-        <p class="lead text-secondary mb-4">
-          LiveClass connects teachers and students through intuitive virtual classrooms, instant attendance logging, and structured academic discussions right from any web browser.
+        <p class="h3 fw-semibold text-primary mb-3">Teach Live. Learn Live.</p>
+        <p class="lead text-secondary mb-4 fs-6" style="line-height: 1.7; max-width: 580px;">
+          Experience effortless live online classes right in your browser. TeachLive equips educators with HD video conferencing, one-click student access, real-time classroom chat, and automated attendance logging.
         </p>
 
-        <div class="d-flex flex-wrap gap-3">
+        <div class="d-flex flex-wrap gap-3 pt-2">
           {% if user.is_authenticated %}
-            <a href="{% url 'core:dashboard' %}" class="btn btn-primary-gradient btn-lg px-4">
-              <i class="bi bi-speedometer2 me-2"></i> Open Dashboard
-            </a>
-            <a href="{% url 'classrooms:list' %}" class="btn btn-outline-dark btn-lg px-4">
-              <i class="bi bi-easel me-2"></i> Browse Classrooms
-            </a>
+            {% if user.is_teacher or user.is_admin_role %}
+              <a href="{% url 'accounts:teacher_dashboard' %}" class="btn btn-primary btn-lg px-4 shadow-sm">
+                <i class="bi bi-speedometer2 me-2"></i> Teacher Dashboard
+              </a>
+              <a href="{% url 'classrooms:create' %}" class="btn btn-outline-primary btn-lg px-4">
+                <i class="bi bi-plus-circle me-2"></i> Schedule Class
+              </a>
+            {% else %}
+              <a href="{% url 'student:dashboard' %}" class="btn btn-primary btn-lg px-4 shadow-sm">
+                <i class="bi bi-speedometer2 me-2"></i> Student Dashboard
+              </a>
+              <a href="{% url 'student:classes' %}" class="btn btn-outline-primary btn-lg px-4">
+                <i class="bi bi-journal-bookmark me-2"></i> My Classes
+              </a>
+            {% endif %}
           {% else %}
-            <a href="{% url 'accounts:teacher_register' %}" class="btn btn-primary-gradient btn-lg px-4 shadow-sm">
-              <i class="bi bi-person-workspace me-2"></i> Join as Teacher
+            <a href="{% url 'accounts:teacher_register' %}" class="btn btn-primary btn-lg px-4 shadow-sm fw-bold">
+              <i class="bi bi-person-workspace me-2"></i> Start Teaching
             </a>
-            <a href="{% url 'accounts:student_register' %}" class="btn btn-outline-primary btn-lg px-4">
-              <i class="bi bi-backpack me-2"></i> Student Sign Up
+            <a href="{% url 'student:login' %}" class="btn btn-outline-primary btn-lg px-4 fw-bold">
+              <i class="bi bi-mortarboard-fill me-2"></i> Join a Class
             </a>
-            <a href="{% url 'accounts:login' %}" class="btn btn-outline-dark btn-lg px-4">
+            <a href="{% url 'accounts:login' %}" class="btn btn-navy btn-lg px-4 fw-semibold">
               Sign In
             </a>
           {% endif %}
         </div>
 
-        <div class="d-flex align-items-center gap-4 mt-4 pt-3 border-top text-secondary small">
-          <div><i class="bi bi-check-circle-fill text-success me-1"></i> Role-Based Dashboards</div>
-          <div><i class="bi bi-check-circle-fill text-success me-1"></i> PostgreSQL-Ready</div>
-          <div><i class="bi bi-check-circle-fill text-success me-1"></i> DRF REST Endpoints</div>
+        <div class="d-flex flex-wrap align-items-center gap-4 mt-4 pt-3 border-top text-secondary small">
+          <div><i class="bi bi-shield-check text-success me-1"></i> End-to-End Encrypted WebRTC</div>
+          <div><i class="bi bi-check2-circle text-primary me-1"></i> Automated Attendance</div>
+          <div><i class="bi bi-google text-danger me-1"></i> 1-Click Student Google Login</div>
         </div>
       </div>
 
       <div class="col-lg-5">
-        <div class="card card-modern p-4 shadow-lg border-0 bg-white">
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-laptop text-primary me-2"></i> Web Access Portal</h5>
-            <span class="badge bg-success-subtle text-success border border-success-subtle">Online</span>
+        <div class="card card-modern p-4 p-lg-5 border shadow-sm bg-white">
+          <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-broadcast text-primary me-2"></i> Quick Class Portal</h5>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Ready</span>
           </div>
-          <p class="text-secondary small mb-4">Quickly jump into your teaching or student dashboard directly from any laptop, desktop, or tablet browser.</p>
 
-          <div class="list-group list-group-flush gap-2 mb-3">
-            <a href="{% url 'accounts:teacher_login' %}" class="list-group-item list-group-item-action rounded-3 border p-3 d-flex align-items-center justify-content-between">
+          <p class="text-secondary small mb-4">
+            Instant entry for teachers and students across Chrome, Edge, Safari, and Firefox.
+          </p>
+
+          <div class="d-grid gap-3 mb-4">
+            <a href="{% url 'accounts:teacher_login' %}" class="card card-modern p-3 text-decoration-none border d-flex flex-row align-items-center justify-content-between">
               <div class="d-flex align-items-center">
-                <div class="p-2 rounded-circle bg-primary bg-opacity-10 text-primary me-3">
+                <div class="p-2 rounded-3 bg-primary-subtle text-primary me-3">
                   <i class="bi bi-person-video3 fs-5"></i>
                 </div>
                 <div>
-                  <h6 class="mb-0 fw-bold">Teacher Portal</h6>
-                  <small class="text-muted">Create classrooms, track attendance</small>
+                  <h6 class="mb-0 fw-bold text-dark">Teacher Sign In</h6>
+                  <small class="text-muted">Launch live classes & manage rosters</small>
                 </div>
               </div>
               <i class="bi bi-arrow-right text-muted"></i>
             </a>
 
-            <a href="{% url 'accounts:student_login' %}" class="list-group-item list-group-item-action rounded-3 border p-3 d-flex align-items-center justify-content-between">
+            <a href="{% url 'student:login' %}" class="card card-modern p-3 text-decoration-none border d-flex flex-row align-items-center justify-content-between">
               <div class="d-flex align-items-center">
-                <div class="p-2 rounded-circle bg-info bg-opacity-10 text-info me-3">
-                  <i class="bi bi-backpack2 fs-5"></i>
+                <div class="p-2 rounded-3 bg-info-subtle text-info me-3">
+                  <i class="bi bi-google fs-5"></i>
                 </div>
                 <div>
-                  <h6 class="mb-0 fw-bold">Student Portal</h6>
-                  <small class="text-muted">Join with code, check attendance & chat</small>
+                  <h6 class="mb-0 fw-bold text-dark">Student Sign In</h6>
+                  <small class="text-muted">Join with Google or room code</small>
                 </div>
               </div>
               <i class="bi bi-arrow-right text-muted"></i>
@@ -84,7 +103,7 @@
           </div>
 
           <div class="p-3 bg-light rounded-3 text-center small text-secondary">
-            <i class="bi bi-info-circle me-1"></i> No mobile app download required. Fully optimized for Chrome, Edge, Firefox, and Safari.
+            <i class="bi bi-laptop me-1"></i> No software install needed. Runs entirely in your modern browser.
           </div>
         </div>
       </div>
@@ -92,125 +111,194 @@
   </div>
 </section>
 
-<!-- Stats Section -->
-<div class="container mb-5">
+<!-- Stats Metrics -->
+<section class="container mb-5">
   <div class="row g-4 text-center">
     <div class="col-md-4">
       <div class="card card-modern p-4">
-        <h2 class="display-6 fw-bold text-primary mb-1">{{ total_classes }}</h2>
-        <p class="text-muted mb-0 fw-medium">Active Virtual Classrooms</p>
+        <div class="display-6 fw-bold text-primary mb-1">{{ total_classes }}</div>
+        <p class="text-muted mb-0 fw-semibold small text-uppercase tracking-wider">Active Classrooms</p>
       </div>
     </div>
     <div class="col-md-4">
       <div class="card card-modern p-4">
-        <h2 class="display-6 fw-bold text-indigo mb-1" style="color: #6366f1;">{{ total_teachers }}</h2>
-        <p class="text-muted mb-0 fw-medium">Registered Instructors</p>
+        <div class="display-6 fw-bold text-navy mb-1" style="color: #0f172a;">{{ total_teachers }}</div>
+        <p class="text-muted mb-0 fw-semibold small text-uppercase tracking-wider">Registered Instructors</p>
       </div>
     </div>
     <div class="col-md-4">
       <div class="card card-modern p-4">
-        <h2 class="display-6 fw-bold text-info mb-1">{{ total_students }}</h2>
-        <p class="text-muted mb-0 fw-medium">Enrolled Students</p>
+        <div class="display-6 fw-bold text-info mb-1">{{ total_students }}</div>
+        <p class="text-muted mb-0 fw-semibold small text-uppercase tracking-wider">Enrolled Students</p>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- Features Grid -->
-<div class="container py-4 mb-5">
+<!-- Features Section (Strictly matching prompt) -->
+<section class="container py-4 mb-5">
   <div class="text-center max-w-700 mx-auto mb-5">
-    <h2 class="fw-bold mb-2">Designed for Streamlined Virtual Education</h2>
-    <p class="text-secondary">Explore the core modules built specifically for high-engagement online classrooms.</p>
+    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill mb-2">Platform Features</span>
+    <h2 class="fw-bold text-dark mb-2">Engineered for Modern Online Education</h2>
+    <p class="text-secondary small">Comprehensive tools built for interactive live lectures, structured management, and clear accountability.</p>
   </div>
 
   <div class="row g-4">
+    <!-- 1. Live Classes -->
     <div class="col-lg-4 col-md-6">
-      <div class="card card-modern card-lift h-100 p-4">
-        <div class="p-3 rounded-3 bg-primary bg-opacity-10 text-primary d-inline-block mb-3" style="width: fit-content;">
-          <i class="bi bi-easel2-fill fs-3"></i>
+      <div class="card card-modern card-lift h-100 p-4 border">
+        <div class="p-3 rounded-3 bg-primary-subtle text-primary d-inline-block mb-3" style="width: fit-content;">
+          <i class="bi bi-camera-video-fill fs-4"></i>
         </div>
-        <h5 class="fw-bold mb-2">Classroom Hub & Code Join</h5>
+        <h5 class="fw-bold text-dark mb-2">Live Classes</h5>
         <p class="text-secondary small mb-0">
-          Teachers generate unique 6-character classroom codes. Students enroll in 1 click without complicated invitation chains or administrative overhead.
+          High-definition LiveKit WebRTC video and crystal-clear audio with screen sharing, participant video tiles, and teacher moderation controls.
         </p>
       </div>
     </div>
 
+    <!-- 2. Easy Student Access -->
     <div class="col-lg-4 col-md-6">
-      <div class="card card-modern card-lift h-100 p-4">
-        <div class="p-3 rounded-3 bg-success bg-opacity-10 text-success d-inline-block mb-3" style="width: fit-content;">
-          <i class="bi bi-clipboard-check-fill fs-3"></i>
+      <div class="card card-modern card-lift h-100 p-4 border">
+        <div class="p-3 rounded-3 bg-info-subtle text-info d-inline-block mb-3" style="width: fit-content;">
+          <i class="bi bi-door-open-fill fs-4"></i>
         </div>
-        <h5 class="fw-bold mb-2">Attendance Logging</h5>
+        <h5 class="fw-bold text-dark mb-2">Easy Student Access</h5>
         <p class="text-secondary small mb-0">
-          Take roll call per lecture session with Present, Absent, Late, or Excused status. Automated percentage calculation and instant student attendance records.
+          Join quickly via 6-character room codes, direct class invitation links, or fast Google OAuth login without software installation.
         </p>
       </div>
     </div>
 
+    <!-- 3. Real-Time Interaction -->
     <div class="col-lg-4 col-md-6">
-      <div class="card card-modern card-lift h-100 p-4">
-        <div class="p-3 rounded-3 bg-info bg-opacity-10 text-info d-inline-block mb-3" style="width: fit-content;">
-          <i class="bi bi-chat-dots-fill fs-3"></i>
+      <div class="card card-modern card-lift h-100 p-4 border">
+        <div class="p-3 rounded-3 bg-success-subtle text-success d-inline-block mb-3" style="width: fit-content;">
+          <i class="bi bi-chat-dots-fill fs-4"></i>
         </div>
-        <h5 class="fw-bold mb-2">Classroom Discussion</h5>
+        <h5 class="fw-bold text-dark mb-2">Real-Time Interaction</h5>
         <p class="text-secondary small mb-0">
-          Engage in real-time academic discussion and Q&A streams within each classroom. Teacher and student messages are distinctly identified.
+          In-class instant messaging, Q&A discussion streams, and participant presence tracking to keep learners active and engaged.
         </p>
       </div>
     </div>
 
+    <!-- 4. Attendance Tracking -->
     <div class="col-lg-4 col-md-6">
-      <div class="card card-modern card-lift h-100 p-4">
-        <div class="p-3 rounded-3 bg-warning bg-opacity-10 text-warning d-inline-block mb-3" style="width: fit-content;">
-          <i class="bi bi-calendar3 fs-3"></i>
+      <div class="card card-modern card-lift h-100 p-4 border">
+        <div class="p-3 rounded-3 bg-warning-subtle text-warning d-inline-block mb-3" style="width: fit-content;">
+          <i class="bi bi-calendar-check-fill fs-4"></i>
         </div>
-        <h5 class="fw-bold mb-2">Schedules & Timetable</h5>
+        <h5 class="fw-bold text-dark mb-2">Attendance Tracking</h5>
         <p class="text-secondary small mb-0">
-          Publish recurring lecture times, lab sessions, and office hours with clear weekly timetables so students never miss an important meeting.
+          Automated live session attendance calculation with join/leave duration metrics, percentage statuses, and 1-click CSV report exports.
         </p>
       </div>
     </div>
 
+    <!-- 5. Secure Access -->
     <div class="col-lg-4 col-md-6">
-      <div class="card card-modern card-lift h-100 p-4">
-        <div class="p-3 rounded-3 bg-danger bg-opacity-10 text-danger d-inline-block mb-3" style="width: fit-content;">
-          <i class="bi bi-shield-lock-fill fs-3"></i>
+      <div class="card card-modern card-lift h-100 p-4 border">
+        <div class="p-3 rounded-3 bg-danger-subtle text-danger d-inline-block mb-3" style="width: fit-content;">
+          <i class="bi bi-shield-lock-fill fs-4"></i>
         </div>
-        <h5 class="fw-bold mb-2">Role-Based Security</h5>
+        <h5 class="fw-bold text-dark mb-2">Secure Access</h5>
         <p class="text-secondary small mb-0">
-          Strict role separation for ADMIN, TEACHER, and STUDENT users. Views and endpoints enforce role verification with custom permissions.
+          Strict role-based access control (Admin, Teacher, Student), cryptographic JWT token validation, CSRF defense, and session protection.
         </p>
       </div>
     </div>
 
+    <!-- 6. Teacher Management -->
     <div class="col-lg-4 col-md-6">
-      <div class="card card-modern card-lift h-100 p-4">
-        <div class="p-3 rounded-3 bg-dark bg-opacity-10 text-dark d-inline-block mb-3" style="width: fit-content;">
-          <i class="bi bi-code-slash fs-3"></i>
+      <div class="card card-modern card-lift h-100 p-4 border">
+        <div class="p-3 rounded-3 bg-secondary-subtle text-dark d-inline-block mb-3" style="width: fit-content;">
+          <i class="bi bi-people-fill fs-4"></i>
         </div>
-        <h5 class="fw-bold mb-2">REST API Architecture</h5>
+        <h5 class="fw-bold text-dark mb-2">Teacher Management</h5>
         <p class="text-secondary small mb-0">
-          Built-in Django REST Framework endpoints for users, classrooms, attendance records, and chat messages for seamless frontend-backend decoupling.
+          Dedicated educator dashboard to schedule live classes, approve enrollment requests, manage rosters, and review student progress.
         </p>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- Video Notice Banner (Adhering to specification: Do NOT implement live video yet) -->
-<div class="container mb-5">
-  <div class="alert alert-secondary border-0 p-4 rounded-4 shadow-sm d-flex flex-column flex-md-row align-items-center justify-content-between">
-    <div class="d-flex align-items-center mb-3 mb-md-0">
-      <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle me-3">
-        <i class="bi bi-camera-video fs-4"></i>
+<!-- How It Works Section (Exact 5 Steps from Prompt) -->
+<section class="py-5 bg-white border-top border-bottom mb-5">
+  <div class="container py-3">
+    <div class="text-center max-w-700 mx-auto mb-5">
+      <span class="badge bg-secondary-subtle text-secondary px-3 py-1 rounded-pill mb-2">Workflow</span>
+      <h2 class="fw-bold text-dark mb-2">How It Works</h2>
+      <p class="text-secondary small">Start teaching live in 5 straightforward steps.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+      <!-- Step 1 -->
+      <div class="col-lg-2 col-md-4 col-6 text-center">
+        <div class="p-3 rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 56px; height: 56px;">
+          <span class="fw-bold fs-5">1</span>
+        </div>
+        <h6 class="fw-bold text-dark mb-1">Create Class</h6>
+        <p class="text-muted small">Teacher creates and schedules a class.</p>
       </div>
-      <div>
-        <h5 class="fw-bold mb-1">WebRTC Live Video Engine</h5>
-        <p class="text-secondary mb-0 small">Video streaming engine is reserved for the upcoming release. Core classroom management, attendance, chat, and scheduling are active.</p>
+
+      <!-- Step 2 -->
+      <div class="col-lg-2 col-md-4 col-6 text-center">
+        <div class="p-3 rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 56px; height: 56px;">
+          <span class="fw-bold fs-5">2</span>
+        </div>
+        <h6 class="fw-bold text-dark mb-1">Share Link</h6>
+        <p class="text-muted small">Share room code or invite link.</p>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="col-lg-2 col-md-4 col-6 text-center">
+        <div class="p-3 rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 56px; height: 56px;">
+          <span class="fw-bold fs-5">3</span>
+        </div>
+        <h6 class="fw-bold text-dark mb-1">Join Securely</h6>
+        <p class="text-muted small">Students join securely via web browser.</p>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="col-lg-2 col-md-4 col-6 text-center">
+        <div class="p-3 rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 56px; height: 56px;">
+          <span class="fw-bold fs-5">4</span>
+        </div>
+        <h6 class="fw-bold text-dark mb-1">Start Live Class</h6>
+        <p class="text-muted small">Teacher launches HD video and audio.</p>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="col-lg-2 col-md-4 col-6 text-center">
+        <div class="p-3 rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 56px; height: 56px;">
+          <span class="fw-bold fs-5">5</span>
+        </div>
+        <h6 class="fw-bold text-dark mb-1">Attendance Logged</h6>
+        <p class="text-muted small">Attendance is recorded automatically.</p>
       </div>
     </div>
-    <span class="badge bg-primary px-3 py-2 rounded-pill">Phase 2 Scheduled</span>
   </div>
-</div>
+</section>
+
+<!-- Bottom CTA Section -->
+<section class="container mb-5">
+  <div class="card card-modern p-4 p-md-5 border-0 bg-dark text-white text-center shadow">
+    <div class="py-2">
+      <h3 class="fw-bold text-white mb-2">Ready to Elevate Your Online Teaching?</h3>
+      <p class="text-light text-opacity-75 small mb-4 max-w-700 mx-auto">
+        Join educators and students worldwide who rely on TeachLive for seamless live classes and automated attendance.
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-3">
+        <a href="{% url 'accounts:teacher_register' %}" class="btn btn-primary btn-lg px-4 fw-bold">
+          Start Teaching Now
+        </a>
+        <a href="{% url 'student:login' %}" class="btn btn-outline-light btn-lg px-4 fw-semibold">
+          Student Portal
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}

@@ -1,87 +1,152 @@
 /* ============================================================
-   LiveClass Custom Design System
-   Modern, accessible, responsive styling with Bootstrap 5
+   TeachLive Modern SaaS Design System
+   "Teach Live. Learn Live."
+   Primary: Blue (#2563EB)
+   Secondary: Dark Navy (#0F172A)
+   Background: #F8FAFC / #FFFFFF
+   Text: #0F172A / #334155 / #64748B
    ============================================================ */
 
 :root {
-  --primary-color: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-light: #eef2ff;
-  --secondary-color: #0ea5e9;
-  --accent-color: #8b5cf6;
-  --dark-bg: #0f172a;
-  --dark-surface: #1e293b;
-  --light-bg: #f8fafc;
-  --text-main: #1e293b;
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #eff6ff;
+  --primary-border: #bfdbfe;
+
+  --navy-dark: #0f172a;
+  --navy-surface: #1e293b;
+  --navy-light: #334155;
+
+  --bg-main: #f8fafc;
+  --bg-surface: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
   --text-muted: #64748b;
-  --card-border: rgba(226, 232, 240, 0.8);
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  --border-light: #e2e8f0;
+  --border-focus: #3b82f6;
+
+  --success-color: #10b981;
+  --success-bg: #ecfdf5;
+  --danger-color: #ef4444;
+  --danger-bg: #fef2f2;
+  --warning-color: #f59e0b;
+  --warning-bg: #fffbeb;
+
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
 }
 
 body {
-  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: var(--text-main);
-  background-color: var(--light-bg);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text-primary);
+  background-color: var(--bg-main);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6, .brand-font {
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--navy-dark);
 }
 
 main {
   flex: 1 0 auto;
 }
 
-/* Navbar styling */
+/* ============================================================
+   Navbar & Header
+   ============================================================ */
 .navbar-custom {
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  background: #0f172a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .navbar-brand {
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  font-size: 1.4rem;
-}
-
-.brand-gradient {
-  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 1.25rem;
+  letter-spacing: -0.03em;
 }
 
 .nav-link {
   font-weight: 500;
-  font-size: 0.95rem;
-  transition: color 0.2s ease, transform 0.2s ease;
+  font-size: 0.92rem;
+  color: #94a3b8 !important;
+  transition: color 0.15s ease-in-out;
 }
 
-.nav-link:hover {
-  color: #38bdf8 !important;
+.nav-link:hover, .nav-link.active {
+  color: #ffffff !important;
 }
 
-/* Hero Section */
-.hero-gradient {
-  background: radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.15) 0%, transparent 40%),
-              radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.15) 0%, transparent 40%),
-              #ffffff;
-  border-bottom: 1px solid var(--card-border);
+.nav-link i {
+  font-size: 1rem;
+  vertical-align: -0.1em;
 }
 
-/* Cards & Containers */
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn {
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-primary, .btn-primary-gradient {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary-gradient:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.25);
+}
+
+.btn-outline-primary {
+  color: var(--primary-color);
+  border-color: #93c5fd;
+  background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary-light);
+  color: var(--primary-hover);
+  border-color: var(--primary-color);
+}
+
+.btn-navy {
+  background-color: var(--navy-dark);
+  border-color: var(--navy-dark);
+  color: #ffffff;
+}
+
+.btn-navy:hover {
+  background-color: var(--navy-surface);
+  border-color: var(--navy-surface);
+  color: #ffffff;
+}
+
+/* ============================================================
+   Cards & Layout Components
+   ============================================================ */
 .card-modern {
-  background: #ffffff;
-  border: 1px solid var(--card-border);
-  border-radius: 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 0.75rem;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .card-modern:hover {
@@ -89,165 +154,312 @@ main {
 }
 
 .card-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
-/* Primary buttons with modern gradient */
-.btn-primary-gradient {
-  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-  color: #ffffff;
-  border: none;
-  font-weight: 600;
+.card-stat {
+  border-left: 4px solid var(--primary-color);
+}
+
+/* ============================================================
+   Forms & Inputs
+   ============================================================ */
+.form-control, .form-select {
   border-radius: 0.5rem;
-  padding: 0.6rem 1.4rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+  border: 1px solid var(--border-light);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  background-color: #ffffff;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-.btn-primary-gradient:hover {
-  background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
-  color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+.form-control:focus, .form-select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-/* Badges */
-.badge-role-teacher {
-  background-color: #e0e7ff;
-  color: #3730a3;
+.form-label {
   font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--navy-surface);
+  margin-bottom: 0.35rem;
+}
+
+/* ============================================================
+   Status Badges & Role Badges
+   ============================================================ */
+.badge-role-teacher {
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-weight: 600;
+  padding: 0.35em 0.65em;
+  border-radius: 0.375rem;
 }
 
 .badge-role-student {
   background-color: #e0f2fe;
   color: #0369a1;
   font-weight: 600;
+  padding: 0.35em 0.65em;
+  border-radius: 0.375rem;
 }
 
 .badge-role-admin {
   background-color: #fee2e2;
   color: #991b1b;
   font-weight: 600;
+  padding: 0.35em 0.65em;
+  border-radius: 0.375rem;
 }
 
-/* Status Badges */
-.badge-status-present {
-  background-color: #dcfce7;
-  color: #166534;
-}
-
-.badge-status-absent {
+/* Live / Scheduled / Completed / Cancelled Status Badges */
+.badge-status-live, .badge-live {
   background-color: #fee2e2;
-  color: #991b1b;
+  color: #dc2626;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border: 1px solid #fecaca;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.badge-status-live::before, .badge-live::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  animation: livePulse 1.5s infinite;
+}
+
+@keyframes livePulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.badge-status-scheduled {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-status-completed, .badge-status-present {
+  background-color: #ecfdf5;
+  color: #047857;
+  font-weight: 600;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-status-cancelled, .badge-status-absent {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  font-weight: 600;
+  border: 1px solid #fecaca;
 }
 
 .badge-status-late {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: #fffbeb;
+  color: #b45309;
+  font-weight: 600;
+  border: 1px solid #fde68a;
 }
 
 .badge-status-excused {
   background-color: #f1f5f9;
   color: #475569;
-}
-
-/* Chat styles */
-.chat-container {
-  height: 550px;
-  display: flex;
-  flex-direction: column;
-  background: #ffffff;
-  border-radius: 1rem;
-  border: 1px solid var(--card-border);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-}
-
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.25rem;
-  background: #f8fafc;
-}
-
-.chat-bubble {
-  max-width: 75%;
-  margin-bottom: 0.85rem;
-  padding: 0.75rem 1rem;
-  border-radius: 1rem;
-  position: relative;
-  word-wrap: break-word;
-}
-
-.chat-bubble.mine {
-  margin-left: auto;
-  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-  color: #ffffff;
-  border-bottom-right-radius: 0.25rem;
-}
-
-.chat-bubble.theirs {
-  margin-right: auto;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #1e293b;
-  border-bottom-left-radius: 0.25rem;
-}
-
-.chat-bubble.mine .sender-name,
-.chat-bubble.mine .message-time {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.chat-bubble.theirs .sender-name {
   font-weight: 600;
-  color: #4f46e5;
+  border: 1px solid #e2e8f0;
 }
 
-.chat-bubble.theirs .message-time {
-  color: #94a3b8;
+/* ============================================================
+   Tables
+   ============================================================ */
+.table-modern {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
 }
 
-/* Code badge */
-.code-pill {
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  background: #f1f5f9;
-  border: 1px dashed #cbd5e1;
-  border-radius: 0.375rem;
-  padding: 0.25rem 0.5rem;
+.table-modern thead th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.table-modern tbody td {
+  padding: 0.85rem 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.92rem;
+}
+
+.table-modern tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table-modern tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* ============================================================
+   Empty States
+   ============================================================ */
+.empty-state {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px dashed var(--border-light);
+}
+
+.empty-state-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: var(--primary-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state-title {
   font-weight: 700;
-  letter-spacing: 1px;
+  font-size: 1.15rem;
+  color: var(--navy-dark);
+  margin-bottom: 0.35rem;
 }
 
-/* Footer styling */
+.empty-state-desc {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  max-width: 420px;
+  margin: 0 auto 1.25rem auto;
+}
+
+/* ============================================================
+   Avatars
+   ============================================================ */
+.avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1e40af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
 .footer-custom {
   background: #0f172a;
   color: #94a3b8;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 2.5rem 0 1.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .footer-custom a {
   color: #cbd5e1;
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 .footer-custom a:hover {
   color: #38bdf8;
 }
 
-/* Avatars */
-.avatar-circle {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: #e0e7ff;
-  color: #4338ca;
+.bg-navy-subtle {
+  background-color: rgba(30, 41, 59, 0.7);
+}
+
+/* ============================================================
+   Chat & Messaging Styles
+   ============================================================ */
+.chat-container {
+  height: 520px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background: #f8fafc;
+}
+
+.chat-bubble {
+  max-width: 80%;
+  margin-bottom: 0.75rem;
+  padding: 0.65rem 0.95rem;
+  border-radius: 0.75rem;
+  word-wrap: break-word;
+  font-size: 0.92rem;
+}
+
+.chat-bubble.mine {
+  margin-left: auto;
+  background: #2563eb;
+  color: #ffffff;
+  border-bottom-right-radius: 0.15rem;
+}
+
+.chat-bubble.theirs {
+  margin-right: auto;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  color: #0f172a;
+  border-bottom-left-radius: 0.15rem;
+}
+
+.chat-bubble.mine .sender-name,
+.chat-bubble.mine .message-time {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.75rem;
+}
+
+.chat-bubble.theirs .sender-name {
+  font-weight: 600;
+  color: #2563eb;
+  font-size: 0.75rem;
+}
+
+.chat-bubble.theirs .message-time {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+/* Code badge / Room Code */
+.code-pill {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: #f1f5f9;
+  border: 1px dashed #cbd5e1;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.6rem;
   font-weight: 700;
-  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  color: #0f172a;
 }

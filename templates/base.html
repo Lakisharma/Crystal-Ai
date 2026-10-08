@@ -5,10 +5,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>{% block title %}LiveClass - Virtual Classroom Platform{% endblock %}</title>
-  <meta name="description" content="{% block meta_description %}LiveClass is a modern, responsive web application for virtual learning, classroom management, attendance tracking, and academic discussions.{% endblock %}">
+  <title>{% block title %}TeachLive — Teach Live. Learn Live.{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}TeachLive is a modern, responsive SaaS platform for virtual learning, WebRTC live video classes, attendance tracking, and academic moderation.{% endblock %}">
 
-  <!-- Google Fonts: Outfit & Inter -->
+  <!-- SEO & Robots Directive: Private pages noindex by default; public pages override -->
+  {% block meta_robots %}
+  <meta name="robots" content="noindex, nofollow">
+  {% endblock %}
+
+  <!-- Open Graph / Meta -->
+  <meta property="og:site_name" content="TeachLive">
+  <meta property="og:title" content="{% block og_title %}TeachLive — Teach Live. Learn Live.{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Professional browser-native live video classes, automated attendance, and academic discussion.{% endblock %}">
+  <meta property="og:type" content="website">
+
+  <!-- Favicon / Brand Icon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+
+  <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -16,24 +30,24 @@
   <!-- Bootstrap 5.3 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
-  <!-- Bootstrap Icons -->
+  <!-- Bootstrap Icons 1.11 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  <!-- LiveClass Custom CSS -->
+  <!-- TeachLive Design System CSS -->
   <link rel="stylesheet" href="{% static 'css/custom.css' %}">
   {% block extra_css %}{% endblock %}
 </head>
-<body>
-  <!-- Responsive Navbar -->
+<body class="d-flex flex-column min-vh-100 bg-slate-50">
+  <!-- Top Navigation Bar -->
   {% include 'navbar.html' %}
 
   <!-- Global Alerts & Notifications -->
   <div class="container mt-3">
     {% if messages %}
       {% for message in messages %}
-        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm d-flex align-items-center" role="alert">
-          <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill text-success{% elif message.tags == 'error' or message.tags == 'danger' %}bi-exclamation-triangle-fill text-danger{% else %}bi-info-circle-fill text-primary{% endif %} fs-5 me-2"></i>
-          <div>{{ message }}</div>
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm d-flex align-items-center rounded-3 border" role="alert">
+          <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill text-success{% elif message.tags == 'error' or message.tags == 'danger' %}bi-exclamation-triangle-fill text-danger{% elif message.tags == 'warning' %}bi-exclamation-circle-fill text-warning{% else %}bi-info-circle-fill text-primary{% endif %} fs-5 me-2 flex-shrink-0"></i>
+          <div class="small fw-medium">{{ message }}</div>
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
       {% endfor %}
@@ -41,18 +55,18 @@
   </div>
 
   <!-- Main Body Content -->
-  <main class="py-4">
+  <main class="flex-grow-1 py-3 py-md-4">
     {% block content %}
     {% endblock %}
   </main>
 
-  <!-- Footer -->
+  <!-- Global Footer -->
   {% include 'footer.html' %}
 
   <!-- Bootstrap 5 Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
-  <!-- LiveClass JavaScript -->
+  <!-- TeachLive JavaScript -->
   <script src="{% static 'js/main.js' %}"></script>
   {% block extra_js %}{% endblock %}
 </body>

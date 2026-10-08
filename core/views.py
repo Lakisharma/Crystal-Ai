@@ -47,6 +47,18 @@ def about_view(request):
     return render(request, 'core/about.html')
 
 
+def contact_view(request):
+    return render(request, 'core/contact.html')
+
+
+def privacy_view(request):
+    return render(request, 'core/privacy.html')
+
+
+def terms_view(request):
+    return render(request, 'core/terms.html')
+
+
 def health_check_view(request):
     """
     Lightweight health check endpoint for Render / uptime monitoring.

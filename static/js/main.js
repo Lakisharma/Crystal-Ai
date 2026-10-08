@@ -1,6 +1,7 @@
 /**
- * LiveClass Main Frontend Script
- * Handles vanilla JavaScript UI interactions, code copy, and chat polling.
+ * TeachLive Main Frontend Script
+ * "Teach Live. Learn Live."
+ * Handles vanilla JavaScript UI interactions, code copy, tooltips, and loading states.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -28,18 +29,49 @@ document.addEventListener('DOMContentLoaded', () => {
       const code = btn.getAttribute('data-code');
       if (code) {
         navigator.clipboard.writeText(code).then(() => {
-          const originalText = btn.innerHTML;
+          const originalHTML = btn.innerHTML;
           btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
           btn.classList.add('btn-success');
           btn.classList.remove('btn-outline-secondary', 'btn-secondary');
           setTimeout(() => {
-            btn.innerHTML = originalText;
+            btn.innerHTML = originalHTML;
             btn.classList.remove('btn-success');
             btn.classList.add('btn-outline-secondary');
           }, 2000);
         }).catch(err => {
           console.error('Failed to copy code: ', err);
         });
+      }
+    });
+  });
+
+  // Universal Password Visibility Toggle
+  document.querySelectorAll('.btn-toggle-password').forEach(toggleBtn => {
+    toggleBtn.addEventListener('click', () => {
+      const targetId = toggleBtn.getAttribute('data-target');
+      const input = document.getElementById(targetId) || toggleBtn.previousElementSibling;
+      if (input && (input.tagName === 'INPUT')) {
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        const icon = toggleBtn.querySelector('i');
+        if (icon) {
+          icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+        }
+      }
+    });
+  });
+
+  // Form Submit Loading Feedback
+  document.querySelectorAll('form[data-loading="true"]').forEach(form => {
+    form.addEventListener('submit', () => {
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn && !submitBtn.disabled) {
+        submitBtn.disabled = true;
+        const spinner = document.createElement('span');
+        spinner.className = 'spinner-border spinner-border-sm me-2';
+        spinner.setAttribute('role', 'status');
+        spinner.setAttribute('aria-hidden', 'true');
+        submitBtn.prepend(spinner);
       }
     });
   });
