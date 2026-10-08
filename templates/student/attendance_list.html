@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Attendance - TeachLive{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 bg-white p-4 rounded-4 shadow-sm border">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1 rounded-pill fw-semibold">
+          <i class="bi bi-mortarboard me-1"></i> Student Portal
+        </span>
+        <span class="badge bg-light text-dark border px-2 py-1 font-monospace">
+          {{ date_label }}
+        </span>
+      </div>
+      <h3 class="fw-bold text-dark mb-1">
+        <i class="bi bi-clock-history text-primary me-2"></i> My Attendance
+      </h3>
+      <p class="text-muted small mb-0">
+        Review your participation records, total learning hours, and attendance percentage.
+      </p>
+    </div>
+    <div>
+      <a href="{% url 'student:dashboard' %}" class="btn btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-speedometer2 me-1"></i> Student Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Student Summary Cards (Prompt #8) -->
+  <div class="row g-3 mb-4">
+    <!-- Classes Attended -->
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-primary">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small fw-semibold text-uppercase">Classes Attended</span>
+          <span class="p-2 rounded-3 bg-primary bg-opacity-10 text-primary">
+            <i class="bi bi-collection-play fs-5"></i>
+          </span>
+        </div>
+        <h3 class="fw-bold text-dark mb-0">{{ metrics.classes_attended }}</h3>
+        <span class="text-muted small">Distinct classes joined</span>
+      </div>
+    </div>
+
+    <!-- Total Attendance Duration -->
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-success">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small fw-semibold text-uppercase">Total Time</span>
+          <span class="p-2 rounded-3 bg-success bg-opacity-10 text-success">
+            <i class="bi bi-hourglass-split fs-5"></i>
+          </span>
+        </div>
+        <h3 class="fw-bold text-dark mb-0">{{ metrics.total_duration_hours }} hrs</h3>
+        <span class="text-muted small">{{ metrics.total_duration_mins }} minutes attended</span>
+      </div>
+    </div>
+
+    <!-- Average Session Duration -->
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-warning">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small fw-semibold text-uppercase">Avg. Session</span>
+          <span class="p-2 rounded-3 bg-warning bg-opacity-10 text-warning">
+            <i class="bi bi-clock fs-5"></i>
+          </span>
+        </div>
+        <h3 class="fw-bold text-dark mb-0">{{ metrics.avg_session_mins }} min</h3>
+        <span class="text-muted small">Per class session</span>
+      </div>
+    </div>
+
+    <!-- Attendance Percentage -->
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-info">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small fw-semibold text-uppercase">Attendance Rate</span>
+          <span class="p-2 rounded-3 bg-info bg-opacity-10 text-info">
+            <i class="bi bi-graph-up-arrow fs-5"></i>
+          </span>
+        </div>
+        <h3 class="fw-bold text-dark mb-0">{{ metrics.attendance_percentage }}%</h3>
+        <span class="text-muted small">Duration completion</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Toolbar (Prompt #14) -->
+  <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+    <form method="get" class="row g-2 align-items-end">
+      <!-- Date Preset -->
+      <div class="col-6 col-md-3">
+        <label class="form-label small text-muted mb-1 fw-semibold">Quick Filter</label>
+        <select name="date_preset" class="form-select form-select-sm">
+          <option value="">All Time</option>
+          <option value="this_week" {% if selected_date_preset == 'this_week' %}selected{% endif %}>This Week</option>
+          <option value="this_month" {% if selected_date_preset == 'this_month' %}selected{% endif %}>This Month</option>
+        </select>
+      </div>
+
+      <!-- Custom Date From -->
+      <div class="col-6 col-md-3">
+        <label class="form-label small text-muted mb-1 fw-semibold">Date From</label>
+        <input type="date" name="date_from" class="form-control form-control-sm" value="{{ selected_date_from }}">
+      </div>
+
+      <!-- Custom Date To -->
+      <div class="col-6 col-md-3">
+        <label class="form-label small text-muted mb-1 fw-semibold">Date To</label>
+        <input type="date" name="date_to" class="form-control form-control-sm" value="{{ selected_date_to }}">
+      </div>
+
+      <!-- Actions -->
+      <div class="col-12 col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm flex-grow-1 fw-semibold">
+          <i class="bi bi-funnel me-1"></i> Filter
+        </button>
+        <a href="{% url 'student:attendance' %}" class="btn btn-outline-secondary btn-sm px-3">
+          Reset
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Attendance Table (Prompt #8) -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+    <div class="p-3 px-4 border-bottom bg-light d-flex justify-content-between align-items-center">
+      <h6 class="fw-bold text-dark mb-0">Attendance History</h6>
+      <span class="badge bg-light text-dark border px-2 py-1">{{ attendances.paginator.count }} Sessions</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light text-uppercase small text-muted">
+          <tr>
+            <th class="ps-4">Class</th>
+            <th>Subject</th>
+            <th>Teacher</th>
+            <th>Date & Schedule</th>
+            <th>Duration</th>
+            <th>Joined</th>
+            <th>Left</th>
+            <th>Attendance %</th>
+            <th>Status</th>
+            <th class="text-end pe-4">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for att in attendances %}
+            <tr>
+              <td class="ps-4">
+                <div class="fw-semibold text-dark">{{ att.live_class.title }}</div>
+                <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.65rem;">
+                  {{ att.live_class.room_code }}
+                </span>
+              </td>
+              <td>
+                <span class="text-muted small">{{ att.live_class.subject }}</span>
+              </td>
+              <td>
+                <span class="text-dark small">Prof. {{ att.live_class.teacher.get_full_name|default:att.live_class.teacher.username }}</span>
+              </td>
+              <td>
+                <div class="text-dark small">{{ att.live_class.scheduled_date|date:"M d, Y" }}</div>
+                <div class="text-muted small" style="font-size: 0.72rem;">
+                  {{ att.live_class.scheduled_time|time:"H:i" }} ({{ att.live_class.duration }}m scheduled)
+                </div>
+              </td>
+              <td>
+                <span class="fw-bold text-primary">{{ att.total_duration }} min</span>
+              </td>
+              <td>
+                <span class="text-dark small">{{ att.joined_at|date:"H:i:s" }}</span>
+              </td>
+              <td>
+                {% if att.left_at %}
+                  <span class="text-dark small">{{ att.left_at|date:"H:i:s" }}</span>
+                {% else %}
+                  <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">
+                    Active
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="fw-semibold {% if att.attendance_percentage >= 75 %}text-success{% elif att.attendance_percentage >= 50 %}text-warning{% else %}text-danger{% endif %} small">
+                  {{ att.attendance_percentage }}%
+                </span>
+              </td>
+              <td>
+                {% if att.status == 'PRESENT' %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Present</span>
+                {% elif att.status == 'LEFT' %}
+                  <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">Left</span>
+                {% elif att.status == 'DISCONNECTED' %}
+                  <span class="badge bg-warning-subtle text-warning border px-2 py-1">Disconnected</span>
+                {% else %}
+                  <span class="badge bg-danger-subtle text-danger border px-2 py-1">{{ att.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end pe-4">
+                <a href="{% url 'student:class_attendance' att.live_class.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                  View
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="10" class="text-center py-5 text-muted">
+                <i class="bi bi-calendar-x fs-1 d-block mb-2 text-secondary"></i>
+                <div class="fw-bold">You haven't attended any classes yet.</div>
+                <div class="small">When you join live sessions, your attendance records will appear here.</div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if attendances.has_other_pages %}
+      <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
+        <small class="text-muted">Showing {{ attendances.start_index }} to {{ attendances.end_index }} of {{ attendances.paginator.count }}</small>
+        <ul class="pagination pagination-sm mb-0">
+          {% if attendances.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ attendances.previous_page_number }}&date_preset={{ selected_date_preset }}&date_from={{ selected_date_from }}&date_to={{ selected_date_to }}">
+                Previous
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+          {% endif %}
+          {% for num in attendances.paginator.page_range %}
+            <li class="page-item {% if attendances.number == num %}active{% endif %}">
+              <a class="page-link" href="?page={{ num }}&date_preset={{ selected_date_preset }}&date_from={{ selected_date_from }}&date_to={{ selected_date_to }}">
+                {{ num }}
+              </a>
+            </li>
+          {% endfor %}
+          {% if attendances.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ attendances.next_page_number }}&date_preset={{ selected_date_preset }}&date_from={{ selected_date_from }}&date_to={{ selected_date_to }}">
+                Next
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+          {% endif %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

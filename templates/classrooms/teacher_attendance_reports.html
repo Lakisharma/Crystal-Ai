@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header & Actions -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 bg-white p-4 rounded-4 shadow-sm border">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1 rounded-pill fw-semibold">
+          <i class="bi bi-graph-up me-1"></i> Reporting & Analytics
+        </span>
+        <span class="badge bg-light text-dark border px-2 py-1 font-monospace">
+          {{ date_label }}
+        </span>
+      </div>
+      <h3 class="fw-bold text-dark mb-1">
+        <i class="bi bi-bar-chart-steps text-primary me-2"></i> Attendance Reports
+      </h3>
+      <p class="text-muted small mb-0">
+        Class-wise, student-wise, and date-range aggregations with export capabilities.
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'classrooms:teacher_attendance_export' %}?class_id={{ selected_class_id }}&student={{ selected_student }}&status={{ selected_status }}&date_preset={{ selected_date_preset }}&date_from={{ selected_date_from }}&date_to={{ selected_date_to }}" class="btn btn-success rounded-pill px-4 fw-semibold shadow-sm">
+        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Filtered CSV
+      </a>
+      <a href="{% url 'classrooms:teacher_attendance' %}" class="btn btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i> Attendance Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters Toolbar -->
+  <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+    <form method="get" class="row g-2 align-items-end">
+      <!-- Class Filter -->
+      <div class="col-12 col-md-3">
+        <label class="form-label small text-muted mb-1 fw-semibold">Class</label>
+        <select name="class_id" class="form-select form-select-sm">
+          <option value="">All My Classes</option>
+          {% for c in teacher_classes %}
+            <option value="{{ c.id }}" {% if selected_class_id == c.id|stringformat:"s" %}selected{% endif %}>
+              {{ c.title }} ({{ c.room_code }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Student Query -->
+      <div class="col-6 col-md-3">
+        <label class="form-label small text-muted mb-1 fw-semibold">Student</label>
+        <input type="text" name="student" class="form-control form-control-sm" placeholder="Student name or email..." value="{{ selected_student }}">
+      </div>
+
+      <!-- Date Preset -->
+      <div class="col-6 col-md-2">
+        <label class="form-label small text-muted mb-1 fw-semibold">Date Preset</label>
+        <select name="date_preset" class="form-select form-select-sm">
+          <option value="">Custom Range</option>
+          <option value="today" {% if selected_date_preset == 'today' %}selected{% endif %}>Today</option>
+          <option value="yesterday" {% if selected_date_preset == 'yesterday' %}selected{% endif %}>Yesterday</option>
+          <option value="this_week" {% if selected_date_preset == 'this_week' %}selected{% endif %}>This Week</option>
+          <option value="this_month" {% if selected_date_preset == 'this_month' %}selected{% endif %}>This Month</option>
+        </select>
+      </div>
+
+      <!-- Custom Date From -->
+      <div class="col-6 col-md-2">
+        <label class="form-label small text-muted mb-1 fw-semibold">From</label>
+        <input type="date" name="date_from" class="form-control form-control-sm" value="{{ selected_date_from }}">
+      </div>
+
+      <!-- Custom Date To -->
+      <div class="col-6 col-md-2">
+        <label class="form-label small text-muted mb-1 fw-semibold">To</label>
+        <input type="date" name="date_to" class="form-control form-control-sm" value="{{ selected_date_to }}">
+      </div>
+
+      <!-- Actions -->
+      <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+        <button type="submit" class="btn btn-primary btn-sm px-4 fw-semibold">
+          <i class="bi bi-funnel me-1"></i> Generate Report
+        </button>
+        <a href="{% url 'classrooms:teacher_attendance_reports' %}" class="btn btn-outline-secondary btn-sm px-3">
+          Reset Filters
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Section D: Attendance Summary (Prompt #16 & #19) -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Average Attendance</div>
+        <h3 class="fw-bold text-primary mb-0">{{ metrics.avg_attendance_percentage }}%</h3>
+        <span class="text-muted small">Overall completion rate</span>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Total Teaching Hours</div>
+        <h3 class="fw-bold text-success mb-0">{{ metrics.total_teaching_hours }} hrs</h3>
+        <span class="text-muted small">Conducted class time</span>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Student Learning Hours</div>
+        <h3 class="fw-bold text-info mb-0">{{ metrics.total_student_attendance_hours }} hrs</h3>
+        <span class="text-muted small">Accumulated attendance</span>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Top Attended Class</div>
+        <div class="fw-bold text-dark text-truncate" title="{{ highest_class.class.title }}">
+          {{ highest_class.class.title|default:"N/A" }}
+        </div>
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small mt-1">
+          {{ highest_class.attendance_percentage|default:"0.0" }}% rate
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section A: Class Attendance Report (Prompt #16) -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+    <div class="p-3 px-4 border-bottom bg-light d-flex justify-content-between align-items-center">
+      <h6 class="fw-bold text-dark mb-0">
+        <i class="bi bi-collection-play me-2 text-primary"></i> Section A: Class Attendance Report
+      </h6>
+      <span class="badge bg-light text-dark border px-2 py-1">{{ class_reports|length }} Classes</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light text-uppercase small text-muted">
+          <tr>
+            <th class="ps-4">Class</th>
+            <th>Subject</th>
+            <th>Date</th>
+            <th>Enrolled</th>
+            <th>Joined</th>
+            <th>Absent</th>
+            <th>Avg. Duration</th>
+            <th>Attendance %</th>
+            <th class="text-end pe-4">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in class_reports %}
+            <tr>
+              <td class="ps-4">
+                <div class="fw-semibold text-dark">{{ r.class.title }}</div>
+                <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.65rem;">
+                  {{ r.class.room_code }}
+                </span>
+              </td>
+              <td><span class="text-muted small">{{ r.class.subject }}</span></td>
+              <td>
+                <span class="text-dark small">{{ r.class.scheduled_date|date:"M d, Y" }}</span>
+              </td>
+              <td><span class="badge bg-primary-subtle text-primary">{{ r.enrolled_count }}</span></td>
+              <td><span class="badge bg-success-subtle text-success">{{ r.joined_count }}</span></td>
+              <td>
+                {% if r.absent_count > 0 %}
+                  <span class="badge bg-danger-subtle text-danger">{{ r.absent_count }}</span>
+                {% else %}
+                  <span class="badge bg-light text-muted border">0</span>
+                {% endif %}
+              </td>
+              <td><span class="fw-bold text-dark">{{ r.avg_duration }}m</span></td>
+              <td>
+                <span class="fw-semibold {% if r.attendance_percentage >= 75 %}text-success{% elif r.attendance_percentage >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                  {{ r.attendance_percentage }}%
+                </span>
+              </td>
+              <td class="text-end pe-4">
+                <a href="{% url 'classrooms:teacher_class_attendance' r.class.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                  Class Detail
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="9" class="text-center py-4 text-muted">
+                No classes match the selected date range and filters.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section B: Student Attendance Report (Prompt #16) -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+    <div class="p-3 px-4 border-bottom bg-light d-flex justify-content-between align-items-center">
+      <h6 class="fw-bold text-dark mb-0">
+        <i class="bi bi-people me-2 text-primary"></i> Section B: Student Attendance Report
+      </h6>
+      <span class="badge bg-light text-dark border px-2 py-1">{{ student_reports|length }} Students</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light text-uppercase small text-muted">
+          <tr>
+            <th class="ps-4">Student Name</th>
+            <th>Email</th>
+            <th>Sessions Attended</th>
+            <th>Total Learning Hours</th>
+            <th>Avg. Session Duration</th>
+            <th>Average Attendance %</th>
+            <th class="text-end pe-4">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in student_reports %}
+            <tr>
+              <td class="ps-4">
+                <div class="fw-semibold text-dark">{{ s.student.get_full_name|default:s.student.username }}</div>
+              </td>
+              <td><span class="text-muted small">{{ s.student.email }}</span></td>
+              <td><span class="badge bg-success-subtle text-success">{{ s.sessions_count }}</span></td>
+              <td><span class="fw-bold text-primary">{{ s.total_duration_hours }} hrs ({{ s.total_duration_mins }}m)</span></td>
+              <td><span class="text-dark">{{ s.avg_duration_mins }} min</span></td>
+              <td>
+                <span class="fw-semibold {% if s.attendance_percentage >= 75 %}text-success{% elif s.attendance_percentage >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                  {{ s.attendance_percentage }}%
+                </span>
+              </td>
+              <td class="text-end pe-4">
+                <a href="{% url 'classrooms:teacher_student_attendance' s.student.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                  Student Report
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-4 text-muted">
+                No student records found matching the active filters.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

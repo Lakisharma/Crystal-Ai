@@ -508,6 +508,24 @@ class Attendance(models.Model):
     def __str__(self):
         return f"{self.student_name} - {self.live_class.title} ({self.total_duration} mins)"
 
+    @property
+    def attendance_percentage(self) -> float:
+        from classrooms.attendance_services import calculate_attendance_percentage
+        scheduled = self.live_class.duration if self.live_class else 0
+        return calculate_attendance_percentage(self.total_duration, scheduled)
+
+    @property
+    def duration_display(self) -> str:
+        if self.total_duration >= 60:
+            hrs = self.total_duration // 60
+            mins = self.total_duration % 60
+            return f"{hrs}h {mins}m" if mins else f"{hrs}h"
+        return f"{self.total_duration}m"
+
+    @property
+    def is_active_now(self) -> bool:
+        return self.left_at is None and self.status == self.Status.PRESENT
+
 
 class ChatMessage(models.Model):
     """

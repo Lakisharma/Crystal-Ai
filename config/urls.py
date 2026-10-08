@@ -55,6 +55,12 @@ urlpatterns = [
     path('teacher/attendance/export/', attendance_views.TeacherAttendanceExportCSVView.as_view(), name='teacher_attendance_export'),
     path('teacher/classes/<int:class_id>/attendance/', attendance_views.ClassAttendanceDetailView.as_view(), name='teacher_class_attendance'),
     path('teacher/classes/<int:class_id>/attendance/export/', attendance_views.TeacherAttendanceExportCSVView.as_view(), name='teacher_class_attendance_export'),
+    path('teacher/students/<int:student_id>/attendance/', attendance_views.TeacherStudentAttendanceDetailView.as_view(), name='teacher_student_attendance_direct'),
+    path('teacher/reports/attendance/', attendance_views.TeacherAttendanceReportsView.as_view(), name='teacher_attendance_reports_direct'),
+
+    # Direct Student Attendance routes
+    path('student/attendance/', student_views.StudentAttendanceListView.as_view(), name='student_attendance_direct'),
+    path('student/classes/<int:class_id>/attendance/', student_views.StudentClassAttendanceDetailView.as_view(), name='student_class_attendance_direct'),
 
     # Direct Teacher Scheduled Classes, Dashboard & Interactive Calendar routes
     path('teacher/dashboard/', accounts_views.TeacherDashboardView.as_view(), name='teacher_dashboard_direct'),

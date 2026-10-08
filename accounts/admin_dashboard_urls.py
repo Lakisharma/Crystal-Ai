@@ -30,8 +30,9 @@ urlpatterns = [
     path('classes/<int:pk>/access-requests/<int:request_id>/approve/', admin_dashboard_views.AdminAccessRequestApproveView.as_view(), name='class_access_request_approve'),
     path('classes/<int:pk>/access-requests/<int:request_id>/reject/', admin_dashboard_views.AdminAccessRequestRejectView.as_view(), name='class_access_request_reject'),
 
-    # 5. Attendance Management
+    # 5. Attendance Management & Reports
     path('attendance/', admin_dashboard_views.AdminAttendanceListView.as_view(), name='attendance'),
+    path('attendance/export/', admin_dashboard_views.AdminAttendanceExportCSVView.as_view(), name='attendance_export'),
 
     # 6. Chat Reports
     path('chat/', admin_dashboard_views.AdminChatReportView.as_view(), name='chat'),

@@ -15,6 +15,8 @@ urlpatterns = [
     path('classes/invite/<str:token>/', student_views.StudentClassInviteView.as_view(), name='class_invite'),
     path('invite/<str:token>/', student_views.StudentClassInviteView.as_view(), name='invite'),
     path('calendar/', student_views.StudentCalendarView.as_view(), name='calendar'),
+    path('attendance/', student_views.StudentAttendanceListView.as_view(), name='attendance'),
+    path('classes/<int:class_id>/attendance/', student_views.StudentClassAttendanceDetailView.as_view(), name='class_attendance'),
     path('google/login/', student_views.StudentGoogleAuthInitiateView.as_view(), name='google_login'),
     path('google/callback/', student_views.StudentGoogleCallbackView.as_view(), name='google_callback'),
 ]

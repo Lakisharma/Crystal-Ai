@@ -333,5 +333,81 @@ TeachLive Live Classroom 2.0 delivers a high-reliability, professional online te
    - Toggle side panel tabs; verify chat unread counter increments when receiving messages on participants tab.
    - Click "Leave Class", confirm in modal, and verify clean redirection to student dashboard with attendance recorded.
 
+---
+
+## 10. Advanced Attendance & Reports System (Prompt #16)
+
+TeachLive includes an enterprise-grade, verifiable Attendance and Reports system ensuring accurate duration calculations, reconnect robustness without double-counting, role-based data isolation, and formula injection-protected CSV exports.
+
+### 10.1 Attendance Percentage Formula
+The system calculates student participation percentage using scheduled class duration:
+```
+Attendance % = min(100.0, max(0.0, round((attended_duration / scheduled_duration) * 100, 1)))
+```
+- **Duration Bounding**: Bounded between `0.0%` and `100.0%` (never exceeds 100%, never below 0%).
+- **Zero-Duration Protection**: If scheduled duration is 0, returns `100.0%` if attended > 0, otherwise `0.0%`.
+- **Server-Side Timestamps**: Calculated exclusively from server-side timezone-aware datetimes (`Asia/Kolkata`).
+
+### 10.2 Reconnect & Duration Robustness
+- **Deduplication**: Reconnecting to an active class session reuses the student's existing `Attendance` record rather than creating duplicate rows.
+- **Non-Double-Counting**: When rejoining after a disconnect or temporary departure, prior session duration is accumulated while excluding the disconnected interval.
+
+### 10.3 Teacher Attendance Dashboard (`/teacher/attendance/`)
+- **Real DB Cards**: Total Classes, Completed Classes, Total Students, Total Attendance Sessions, Average Attendance (%), Total Teaching Hours.
+- **Live Attendance**: Displays students connected in real-time with session timers, connection state, raised hands, and mute status.
+- **Filters & Search**: Server-side, case-insensitive search by student name, student email, class title, and subject. Filter by class, student, date presets (`today`, `yesterday`, `this_week`, `this_month`), custom range (`date_from`, `date_to`), and status (`PRESENT`, `LEFT`, `DISCONNECTED`, `ABSENT`).
+- **Pagination**: 20 records per page with query string preservation across page links.
+
+### 10.4 Class Attendance Detail (`/teacher/classes/<class_id>/attendance/`)
+- **Strict Teacher Ownership**: Teachers can only view attendance for classes they created (`live_class.teacher == request.user`). Unauthorized access attempts receive HTTP 403 Forbidden.
+- **Absent Student Identification**: Accurately tracks enrolled students who never joined, displaying them as `Not Joined (Absent)` with `0 min` duration and `0.0%` attendance.
+
+### 10.5 Teacher Student Attendance Report (`/teacher/students/<student_id>/attendance/`)
+- Accessible at `/teacher/students/<student_id>/attendance/`.
+- Displays student profile, total classes offered, classes attended, classes missed, total hours, average session duration, overall attendance rate, and full attendance history.
+
+### 10.6 Teacher Comprehensive Reports (`/teacher/reports/attendance/`)
+- **Section A**: Class Attendance Report (roster with enrolled, joined, absent counts, avg duration, attendance %).
+- **Section B**: Student Attendance Report (student aggregated statistics).
+- **Section C**: Date Range Report (filtered performance by time window).
+- **Section D**: Attendance Summary KPIs (highest & lowest attendance classes, total teaching hours, student learning hours).
+
+### 10.7 Student Attendance (`/student/attendance/`)
+- **Strict Privacy & Isolation**: Students can strictly view only their own attendance records. Never exposes class participants or other student records.
+- **Class Attendance Detail (`/student/classes/<class_id>/attendance/`)**: Allowed only if the student is authorized/enrolled for that class (IDOR protected).
+- **Summary Cards**: Classes attended, total attendance duration, average session duration, and overall attendance percentage.
+
+### 10.8 Admin Attendance Management (`/admin-dashboard/attendance/`)
+- Global visibility across all teachers, classes, and students.
+- Filterable by teacher, student, class, date presets, custom date range, and status.
+- Summary statistics: Total Classes, Total Students, Total Sessions, Total Attendance Duration, Average Attendance Duration, Overall Attendance Rate.
+
+### 10.9 Secure CSV Export
+- Endpoints: `/teacher/attendance/export/`, `/teacher/classes/<class_id>/attendance/export/`, `/admin-dashboard/attendance/export/`.
+- **Standard 12 Columns**:
+  1. Student Name
+  2. Student Email
+  3. Class
+  4. Subject
+  5. Scheduled Date
+  6. Scheduled Start
+  7. Scheduled Duration (mins)
+  8. Join Time
+  9. Leave Time
+  10. Attendance Duration (mins)
+  11. Attendance Status
+  12. Attendance Percentage
+- **CSV Injection Protection (CWE-1236)**: Sanitizes formulas starting with `=`, `+`, `-`, `@`, tab, or return characters.
+- **Encoding**: UTF-8 with RFC 4180 compliance.
+
+### 10.10 Automated Test Commands
+```bash
+# Run Advanced Attendance & Reports Test Suite (21 tests)
+python manage.py test classrooms.test_advanced_attendance_reports
+
+# Run Full Test Suite
+python manage.py test
+```
+
 
 

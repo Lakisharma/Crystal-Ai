@@ -6,6 +6,7 @@ Provides complete management for Teachers, Students, Live Classes, Attendance,
 Chat Reports, Analytics, and Audit Logs.
 """
 
+import csv
 from datetime import timedelta
 import logging
 
@@ -13,6 +14,7 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db.models import Avg, Count, Q, Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -627,16 +629,31 @@ class AdminLiveClassCancelView(AdminRequiredMixin, View):
 
 class AdminAttendanceListView(AdminRequiredMixin, View):
     """
-    Attendance Management at /admin-dashboard/attendance/.
-    Displays all attendance records across all teachers and classes.
-    Read-only audit record with filters (Teacher, Class, Student, Date, Status).
+    Attendance Management & Reporting at /admin-dashboard/attendance/.
+    Section 18:
+    Admin can filter:
+    - Teacher, Student, Class, Date range (presets + custom range), Status.
+    Global summary cards:
+    - Total classes, Total students, Total sessions, Total duration, Average attendance, Attendance percentage.
     """
     def get(self, request):
         teacher_id = request.GET.get('teacher_id', '').strip()
         class_id = request.GET.get('class_id', '').strip()
         student_query = request.GET.get('student', '').strip()
-        date_str = request.GET.get('date', '').strip()
         status_filter = request.GET.get('status', '').strip().upper()
+        date_preset = request.GET.get('date_preset', '').strip().lower()
+        date_from_str = request.GET.get('date_from', '').strip()
+        date_to_str = request.GET.get('date_to', '').strip()
+        single_date = request.GET.get('date', '').strip()
+
+        if single_date and not (date_from_str or date_preset):
+            date_from_str = single_date
+            date_to_str = single_date
+
+        from classrooms.attendance_services import (
+            calculate_attendance_percentage,
+            get_date_range_bounds,
+        )
 
         qs = Attendance.objects.select_related(
             'live_class',
@@ -654,18 +671,47 @@ class AdminAttendanceListView(AdminRequiredMixin, View):
             qs = qs.filter(
                 Q(student_name__icontains=student_query) |
                 Q(student__email__icontains=student_query) |
-                Q(student__username__icontains=student_query)
+                Q(student__username__icontains=student_query) |
+                Q(live_class__title__icontains=student_query)
             )
-
-        if date_str:
-            try:
-                d_val = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
-                qs = qs.filter(joined_at__date=d_val)
-            except ValueError:
-                pass
 
         if status_filter and hasattr(Attendance.Status, status_filter):
             qs = qs.filter(status=status_filter)
+
+        start_dt, end_dt, date_label = get_date_range_bounds(
+            date_preset=date_preset,
+            date_from_str=date_from_str,
+            date_to_str=date_to_str
+        )
+        if start_dt:
+            qs = qs.filter(joined_at__gte=start_dt)
+        if end_dt:
+            qs = qs.filter(joined_at__lte=end_dt)
+
+        # Global attendance statistics (Prompt #18)
+        total_sessions = qs.count()
+        total_classes_count = qs.values('live_class_id').distinct().count()
+        student_ids = qs.exclude(student__isnull=True).values('student_id').distinct().count()
+        student_names = qs.filter(student__isnull=True).values('student_name').distinct().count()
+        total_students_count = student_ids + student_names
+
+        agg = qs.aggregate(
+            total_mins=Sum('total_duration'),
+            avg_mins=Avg('total_duration')
+        )
+        total_duration_mins = int(agg['total_mins'] or 0)
+        total_duration_hours = round(total_duration_mins / 60.0, 1)
+        avg_duration_minutes = int(round(agg['avg_mins'])) if agg['avg_mins'] is not None else 0
+
+        # Attendance percentage
+        if total_sessions > 0:
+            session_percentages = [
+                calculate_attendance_percentage(att.total_duration, att.live_class.duration)
+                for att in qs
+            ]
+            overall_attendance_pct = round(sum(session_percentages) / total_sessions, 1)
+        else:
+            overall_attendance_pct = 0.0
 
         all_teachers = User.objects.filter(role=User.Role.TEACHER).order_by('first_name', 'username')
         all_classes = LiveClass.objects.all().order_by('-created_at')[:50]
@@ -681,16 +727,153 @@ class AdminAttendanceListView(AdminRequiredMixin, View):
             'attendances': attendances_page,
             'all_teachers': all_teachers,
             'all_classes': all_classes,
+            'total_sessions': total_sessions,
+            'total_classes_count': total_classes_count,
+            'total_students_count': total_students_count,
+            'total_duration_hours': total_duration_hours,
+            'avg_duration_minutes': avg_duration_minutes,
+            'overall_attendance_pct': overall_attendance_pct,
             'selected_teacher': teacher_id,
             'selected_class': class_id,
             'selected_student': student_query,
-            'selected_date': date_str,
+            'selected_date': single_date,
+            'selected_date_preset': date_preset,
+            'selected_date_from': date_from_str,
+            'selected_date_to': date_to_str,
             'selected_status': status_filter,
             'status_choices': Attendance.Status.choices,
-            'total_count': qs.count(),
+            'total_count': total_sessions,
             'active_menu': 'attendance',
-            'page_title': 'Attendance Management - TeachLive Admin',
+            'page_title': 'Attendance Management & Reports - TeachLive Admin',
         })
+
+
+class AdminAttendanceExportCSVView(AdminRequiredMixin, View):
+    """
+    Exports filtered attendance reports across all classes/teachers as CSV.
+    Enforces strict Admin role verification.
+    Sanitizes formula injection (=, +, -, @).
+    Contains all 12 standard columns.
+    """
+    def get(self, request):
+        teacher_id = request.GET.get('teacher_id', '').strip()
+        class_id = request.GET.get('class_id', '').strip()
+        student_query = request.GET.get('student', '').strip()
+        status_filter = request.GET.get('status', '').strip().upper()
+        date_preset = request.GET.get('date_preset', '').strip().lower()
+        date_from_str = request.GET.get('date_from', '').strip()
+        date_to_str = request.GET.get('date_to', '').strip()
+        single_date = request.GET.get('date', '').strip()
+
+        if single_date and not (date_from_str or date_preset):
+            date_from_str = single_date
+            date_to_str = single_date
+
+        from classrooms.attendance_services import (
+            calculate_attendance_percentage,
+            get_date_range_bounds,
+        )
+        from classrooms.attendance_views import sanitize_csv_cell
+
+        qs = Attendance.objects.select_related(
+            'live_class',
+            'live_class__teacher',
+            'student'
+        ).order_by('-joined_at')
+
+        if teacher_id.isdigit():
+            qs = qs.filter(live_class__teacher_id=int(teacher_id))
+
+        if class_id.isdigit():
+            qs = qs.filter(live_class_id=int(class_id))
+
+        if student_query:
+            qs = qs.filter(
+                Q(student_name__icontains=student_query) |
+                Q(student__email__icontains=student_query) |
+                Q(student__username__icontains=student_query) |
+                Q(live_class__title__icontains=student_query)
+            )
+
+        if status_filter and hasattr(Attendance.Status, status_filter):
+            qs = qs.filter(status=status_filter)
+
+        start_dt, end_dt, _ = get_date_range_bounds(
+            date_preset=date_preset,
+            date_from_str=date_from_str,
+            date_to_str=date_to_str
+        )
+        if start_dt:
+            qs = qs.filter(joined_at__gte=start_dt)
+        if end_dt:
+            qs = qs.filter(joined_at__lte=end_dt)
+
+        filename_suffix = timezone.now().strftime('%Y-%m-%d')
+        filename = f"teachlive-admin-attendance-{filename_suffix}.csv"
+
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        writer = csv.writer(response)
+        writer.writerow([
+            'Student Name',
+            'Student Email',
+            'Class',
+            'Subject',
+            'Scheduled Date',
+            'Scheduled Start',
+            'Scheduled Duration (mins)',
+            'Join Time',
+            'Leave Time',
+            'Attendance Duration (mins)',
+            'Attendance Status',
+            'Attendance Percentage',
+        ])
+
+        tz = timezone.get_current_timezone()
+
+        for att in qs:
+            student_email = ''
+            if att.student and att.student.email:
+                student_email = att.student.email
+            else:
+                p = ClassParticipant.objects.filter(live_class=att.live_class, student_name=att.student_name).first()
+                if p and p.student_email:
+                    student_email = p.student_email
+
+            join_time_str = att.joined_at.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S') if att.joined_at else ''
+            leave_time_str = att.left_at.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S') if att.left_at else 'Active / In Progress'
+            scheduled_date_str = str(att.live_class.scheduled_date) if att.live_class.scheduled_date else ''
+            scheduled_time_str = att.live_class.scheduled_time.strftime('%H:%M') if att.live_class.scheduled_time else ''
+            scheduled_duration = att.live_class.duration or 0
+
+            att_pct = calculate_attendance_percentage(att.total_duration, scheduled_duration)
+
+            writer.writerow([
+                sanitize_csv_cell(att.student_name),
+                sanitize_csv_cell(student_email),
+                sanitize_csv_cell(att.live_class.title),
+                sanitize_csv_cell(att.live_class.subject),
+                sanitize_csv_cell(scheduled_date_str),
+                sanitize_csv_cell(scheduled_time_str),
+                scheduled_duration,
+                join_time_str,
+                leave_time_str,
+                att.total_duration,
+                sanitize_csv_cell(att.get_status_display()),
+                f"{att_pct}%",
+            ])
+
+        log_admin_action(
+            admin=request.user,
+            action=AdminAuditLog.Action.OTHER,
+            target_type='Attendance',
+            target_id=0,
+            description=f"Admin exported global attendance CSV: {filename} ({qs.count()} records)",
+            request=request
+        )
+
+        return response
 
 
 # =====================================================================

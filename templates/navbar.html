@@ -40,6 +40,11 @@
               </a>
             </li>
             <li class="nav-item">
+              <a class="nav-link" href="{% url 'classrooms:teacher_attendance' %}">
+                <i class="bi bi-calendar-check me-1"></i> Attendance
+              </a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" href="{% url 'classrooms:create' %}">
                 <i class="bi bi-plus-circle me-1"></i> New Class
               </a>
@@ -51,7 +56,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'attendance:student_report' %}">
+              <a class="nav-link" href="{% url 'student:attendance' %}">
                 <i class="bi bi-calendar-check me-1"></i> My Attendance
               </a>
             </li>
@@ -116,6 +121,16 @@
                   </a>
                 </li>
                 <li>
+                  <a class="dropdown-item" href="{% url 'classrooms:teacher_attendance' %}">
+                    <i class="bi bi-calendar-check me-2 text-primary"></i> Attendance Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'classrooms:teacher_attendance_reports' %}">
+                    <i class="bi bi-bar-chart-line me-2 text-primary"></i> Attendance Reports
+                  </a>
+                </li>
+                <li>
                   <a class="dropdown-item" href="{% url 'classrooms:teacher_students' %}">
                     <i class="bi bi-people me-2 text-primary"></i> My Students
                   </a>
@@ -139,6 +154,11 @@
                 <li>
                   <a class="dropdown-item" href="{% url 'student:dashboard' %}">
                     <i class="bi bi-speedometer2 me-2 text-info"></i> Student Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'student:attendance' %}">
+                    <i class="bi bi-calendar-check me-2 text-info"></i> My Attendance
                   </a>
                 </li>
                 <li>

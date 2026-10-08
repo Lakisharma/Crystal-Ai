@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance Detail: {{ live_class.title }} - TeachLive{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'student:dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'student:attendance' %}">My Attendance</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ live_class.title }}</li>
+    </ol>
+  </nav>
+
+  <!-- Class Header -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1 font-monospace">
+            {{ live_class.room_code }}
+          </span>
+          <span class="badge {% if live_class.is_live %}bg-danger{% elif live_class.status == 'COMPLETED' %}bg-success{% else %}bg-secondary{% endif %} px-2 py-1">
+            {{ live_class.get_status_display }}
+          </span>
+        </div>
+        <h3 class="fw-bold text-dark mb-1">{{ live_class.title }}</h3>
+        <p class="text-muted small mb-0">
+          Subject: <strong>{{ live_class.subject }}</strong> &bull;
+          Instructor: <strong>Prof. {{ live_class.teacher.get_full_name|default:live_class.teacher.username }}</strong> &bull;
+          Date: <strong>{{ live_class.scheduled_date|date:"F d, Y" }}</strong> &bull;
+          Time: <strong>{{ live_class.scheduled_time|time:"H:i" }}</strong>
+        </p>
+      </div>
+      <div>
+        <a href="{% url 'student:attendance' %}" class="btn btn-outline-secondary rounded-pill px-3">
+          <i class="bi bi-arrow-left me-1"></i> Back to Attendance
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attendance Detail Card (Prompt #9) -->
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
+          <i class="bi bi-clipboard-check text-primary me-2"></i> Your Attendance Record
+        </h5>
+
+        {% if attendance %}
+          <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+              <div class="p-3 bg-light rounded-3 text-center">
+                <span class="text-muted small d-block">Scheduled Duration</span>
+                <span class="fw-bold fs-5 text-dark">{{ scheduled_duration }} min</span>
+              </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+              <div class="p-3 bg-light rounded-3 text-center">
+                <span class="text-muted small d-block">Attended Duration</span>
+                <span class="fw-bold fs-5 text-primary">{{ attendance.total_duration }} min</span>
+              </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+              <div class="p-3 bg-light rounded-3 text-center">
+                <span class="text-muted small d-block">Attendance Rate</span>
+                <span class="fw-bold fs-5 {% if attendance_percentage >= 75 %}text-success{% elif attendance_percentage >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                  {{ attendance_percentage }}%
+                </span>
+              </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+              <div class="p-3 bg-light rounded-3 text-center">
+                <span class="text-muted small d-block">Status</span>
+                <span class="badge mt-1 {% if attendance.status == 'PRESENT' %}bg-success{% elif attendance.status == 'LEFT' %}bg-secondary{% else %}bg-warning{% endif %}">
+                  {{ attendance.get_status_display }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <ul class="list-group list-group-flush rounded-3 border">
+            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+              <span class="text-muted"><i class="bi bi-box-arrow-in-right text-success me-2"></i> Join Time</span>
+              <span class="fw-semibold text-dark">{{ attendance.joined_at|date:"F d, Y &bull; H:i:s" }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+              <span class="text-muted"><i class="bi bi-box-arrow-right text-secondary me-2"></i> Leave Time</span>
+              {% if attendance.left_at %}
+                <span class="fw-semibold text-dark">{{ attendance.left_at|date:"F d, Y &bull; H:i:s" }}</span>
+              {% else %}
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                  <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i> Active Now
+                </span>
+              {% endif %}
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+              <span class="text-muted"><i class="bi bi-calculator text-primary me-2"></i> Attendance Formula</span>
+              <span class="small font-monospace text-muted">({{ attendance.total_duration }}m / {{ scheduled_duration }}m) &times; 100 = {{ attendance_percentage }}%</span>
+            </li>
+          </ul>
+        {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-person-x fs-1 d-block mb-2 text-secondary"></i>
+            <div class="fw-bold">No attendance recorded.</div>
+            <div class="small">You have not joined this class session yet.</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

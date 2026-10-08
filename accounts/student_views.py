@@ -908,3 +908,120 @@ class StudentCalendarView(View):
             'total_month_classes': authorized_classes.count(),
             'page_title': f"{month_name} {year} Schedule - TeachLive Student Calendar",
         })
+
+
+@method_decorator(login_required(login_url='student:login'), name='dispatch')
+class StudentAttendanceListView(View):
+    """
+    Student Attendance History & Analytics at /student/attendance/.
+    Sections 8 & 14:
+    Student sees strictly their own attendance records.
+    Never exposes any other students or participants.
+    Summary cards:
+    - Classes attended
+    - Total attendance duration
+    - Average session duration
+    - Overall attendance percentage
+    Filters:
+    - All, This Week, This Month, Custom Date Range
+    Pagination enabled.
+    """
+    def get(self, request):
+        user = request.user
+        if not user.is_student and not user.is_admin_role:
+            return redirect('classrooms:teacher_attendance')
+
+        date_preset = request.GET.get('date_preset', '').strip().lower()
+        date_from_str = request.GET.get('date_from', '').strip()
+        date_to_str = request.GET.get('date_to', '').strip()
+
+        from classrooms.attendance_services import (
+            calculate_attendance_percentage,
+            get_date_range_bounds,
+            get_student_attendance_metrics,
+        )
+
+        start_dt, end_dt, date_label = get_date_range_bounds(
+            date_preset=date_preset,
+            date_from_str=date_from_str,
+            date_to_str=date_to_str
+        )
+
+        # Base QuerySet: strictly for this student
+        qs = Attendance.objects.filter(student=user).select_related(
+            'live_class',
+            'live_class__teacher'
+        ).order_by('-joined_at')
+
+        if start_dt:
+            qs = qs.filter(joined_at__gte=start_dt)
+        if end_dt:
+            qs = qs.filter(joined_at__lte=end_dt)
+
+        # Metrics for student cards
+        metrics = get_student_attendance_metrics(
+            student_user=user,
+            date_from=start_dt,
+            date_to=end_dt
+        )
+
+        # Pagination
+        paginator = Paginator(qs, 15)
+        page_num = request.GET.get('page', 1)
+        try:
+            attendances_page = paginator.page(page_num)
+        except (PageNotAnInteger, EmptyPage):
+            attendances_page = paginator.page(1)
+
+        return render(request, 'student/attendance_list.html', {
+            'attendances': attendances_page,
+            'metrics': metrics,
+            'selected_date_preset': date_preset,
+            'selected_date_from': date_from_str,
+            'selected_date_to': date_to_str,
+            'date_label': date_label,
+            'page_title': 'My Attendance - TeachLive',
+        })
+
+
+@method_decorator(login_required(login_url='student:login'), name='dispatch')
+class StudentClassAttendanceDetailView(View):
+    """
+    Student Class Attendance Detail at /student/classes/<class_id>/attendance/.
+    Section 9:
+    Allows viewing only if student is authorized for that class.
+    Shows only the student's own attendance for this class.
+    Never exposes other students or class participants (strict IDOR & privacy protection).
+    """
+    def get(self, request, class_id):
+        user = request.user
+        live_class = get_object_or_404(LiveClass, pk=class_id)
+
+        # Strict Authorization check
+        is_authorized = (
+            get_student_authorized_classes(user).filter(pk=class_id).exists() or
+            Attendance.objects.filter(live_class=live_class, student=user).exists()
+        )
+        if not is_authorized and not user.is_admin_role:
+            raise PermissionDenied("Access Denied: You are not enrolled in or authorized for this class.")
+
+        # Fetch only this student's attendance record
+        attendance = Attendance.objects.filter(
+            live_class=live_class,
+            student=user
+        ).first()
+
+        from classrooms.attendance_services import calculate_attendance_percentage
+
+        scheduled_duration = live_class.duration or 0
+        att_pct = 0.0
+        if attendance:
+            att_pct = calculate_attendance_percentage(attendance.total_duration, scheduled_duration)
+
+        return render(request, 'student/class_attendance_detail.html', {
+            'live_class': live_class,
+            'attendance': attendance,
+            'attendance_percentage': att_pct,
+            'scheduled_duration': scheduled_duration,
+            'page_title': f"My Attendance: {live_class.title} - TeachLive",
+        })

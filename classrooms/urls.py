@@ -37,6 +37,8 @@ urlpatterns = [
     path('teacher/attendance/export/', attendance_views.TeacherAttendanceExportCSVView.as_view(), name='teacher_attendance_export'),
     path('teacher/classes/<int:class_id>/attendance/', attendance_views.ClassAttendanceDetailView.as_view(), name='teacher_class_attendance'),
     path('teacher/classes/<int:class_id>/attendance/export/', attendance_views.TeacherAttendanceExportCSVView.as_view(), name='teacher_class_attendance_export'),
+    path('teacher/students/<int:student_id>/attendance/', attendance_views.TeacherStudentAttendanceDetailView.as_view(), name='teacher_student_attendance'),
+    path('teacher/reports/attendance/', attendance_views.TeacherAttendanceReportsView.as_view(), name='teacher_attendance_reports'),
 
     # Teacher Students Global Management (Prompt #15)
     path('teacher/students/', enrollment_views.TeacherStudentsListView.as_view(), name='teacher_students'),
