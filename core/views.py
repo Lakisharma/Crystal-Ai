@@ -11,9 +11,14 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['total_classes'] = Classroom.objects.filter(is_active=True).count()
-        context['total_teachers'] = User.objects.filter(role=User.Role.TEACHER).count()
-        context['total_students'] = User.objects.filter(role=User.Role.STUDENT).count()
+        try:
+            context['total_classes'] = Classroom.objects.filter(is_active=True).count()
+            context['total_teachers'] = User.objects.filter(role=User.Role.TEACHER).count()
+            context['total_students'] = User.objects.filter(role=User.Role.STUDENT).count()
+        except Exception:
+            context['total_classes'] = 0
+            context['total_teachers'] = 0
+            context['total_students'] = 0
         return context
 
 

@@ -7,6 +7,9 @@ def unread_notifications(request):
     Uses efficient indexed query for authenticated users; returns 0 for anonymous.
     """
     if hasattr(request, 'user') and request.user.is_authenticated:
-        count = request.user.notifications.filter(is_read=False).count()
-        return {'unread_notifications_count': count}
+        try:
+            count = request.user.notifications.filter(is_read=False).count()
+            return {'unread_notifications_count': count}
+        except Exception:
+            return {'unread_notifications_count': 0}
     return {'unread_notifications_count': 0}
