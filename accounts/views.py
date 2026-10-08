@@ -27,13 +27,38 @@ from .models import User
 from .permissions import TeacherRequiredMixin
 from .serializers import UserSerializer
 from notifications.email_service import EmailService
+from core.rate_limit import clear_failed_attempts, get_client_ip, is_rate_limited, record_failed_attempt
 
 
 class BaseAuthLoginView(LoginView):
-    """Base login view using our Bootstrap 5 form."""
+    """Base login view using our Bootstrap 5 form with brute-force rate limiting."""
     form_class = BootstrapLoginForm
     template_name = 'accounts/login.html'
     redirect_authenticated_user = True
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == 'POST':
+            ip = get_client_ip(request)
+            rate_key = f"auth_login_fail_{ip}"
+            if is_rate_limited(rate_key, max_attempts=5, timeout_seconds=300):
+                messages.error(
+                    request,
+                    "Too many failed sign-in attempts from this network. "
+                    "For security, please wait 5 minutes before trying again."
+                )
+                form = self.get_form()
+                return self.render_to_response(self.get_context_data(form=form))
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        ip = get_client_ip(self.request)
+        clear_failed_attempts(f"auth_login_fail_{ip}")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        ip = get_client_ip(self.request)
+        record_failed_attempt(f"auth_login_fail_{ip}", timeout_seconds=300)
+        return super().form_invalid(form)
 
     def get_success_url(self):
         user = self.request.user

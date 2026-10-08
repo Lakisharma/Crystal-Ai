@@ -107,11 +107,12 @@ class ClassroomAndLiveClassTests(TestCase):
         client = Client()
         client.login(username='dr_jones', password='Password123!')
 
+        future_date = date.today() + timedelta(days=2)
         post_data = {
             'title': 'Machine Learning Lab 01',
             'subject': 'Artificial Intelligence',
             'description': 'Gradient Descent and Backprop',
-            'scheduled_date': str(date.today()),
+            'scheduled_date': str(future_date),
             'scheduled_time': '14:30',
             'duration': 75,
             'max_students': 60,
@@ -348,14 +349,14 @@ class LiveClassJoiningAndAttendanceTests(TestCase):
         self.protected_class.set_room_password('SuperSecretPass123!')
         self.protected_class.save()
 
-        # SCHEDULED class
+        # SCHEDULED class (future scheduled date)
         self.scheduled_class = LiveClass.objects.create(
             teacher=self.teacher,
             title='Quantum Mechanics',
             subject='Physics',
             room_code='TL-PHY-202',
             status=LiveClass.Status.SCHEDULED,
-            scheduled_date=date.today(),
+            scheduled_date=date.today() + timedelta(days=1),
             scheduled_time=time(16, 0),
             duration=60
         )

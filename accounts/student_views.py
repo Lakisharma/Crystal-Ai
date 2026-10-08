@@ -62,13 +62,22 @@ def get_student_authorized_classes(user):
     ).select_related('teacher').distinct()
 
 
+from django.utils.http import url_has_allowed_host_and_scheme
+
+
 def is_safe_redirect_url(url: str, request) -> bool:
-    """Validates that a redirect URL is relative and does not lead to an external domain."""
+    """Validates that a redirect URL is strictly internal and does not lead to an external domain."""
     if not url:
         return False
-    # Must start with / and not // (protocol-relative)
     if url.startswith('/') and not url.startswith('//'):
-        return True
+        try:
+            return url_has_allowed_host_and_scheme(
+                url=url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure()
+            )
+        except Exception:
+            return False
     return False
 
 

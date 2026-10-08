@@ -8,8 +8,12 @@ from django.contrib import admin
 from django.urls import include, path
 from classrooms import attendance_views, live_views, enrollment_views, views as classrooms_views
 from accounts import views as accounts_views, student_views
+from core import views as core_views
 
 urlpatterns = [
+    # Production Health Check Endpoint
+    path('health/', core_views.health_check_view, name='health_check'),
+
     path('admin/', admin.site.urls),
 
     # App URLs
@@ -73,6 +77,8 @@ urlpatterns = [
 
 
 # Error Handlers
+handler400 = 'core.views.custom_400_view'
+handler403 = 'core.views.custom_403_view'
 handler404 = 'core.views.custom_404_view'
 handler500 = 'core.views.custom_500_view'
 

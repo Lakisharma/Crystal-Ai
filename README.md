@@ -405,9 +405,49 @@ Attendance % = min(100.0, max(0.0, round((attended_duration / scheduled_duration
 # Run Advanced Attendance & Reports Test Suite (21 tests)
 python manage.py test classrooms.test_advanced_attendance_reports
 
+# Run Security Hardening & Production Readiness Test Suite (13 tests)
+python manage.py test core.test_security_hardening
+
 # Run Full Test Suite
 python manage.py test
 ```
+
+---
+
+## 11. Production Security Hardening & Deployment Checklist
+
+TeachLive is hardened according to OWASP Top 10 guidelines and Django production standards.
+
+### 11.1 Security Configuration Matrix
+- **`DEBUG = False`**: Enforced safely in production. No debug tracebacks, paths, or environment variables are ever leaked to public clients.
+- **`SECRET_KEY`**: Sourced strictly via environment variable (`SECRET_KEY`). Raises a fatal `ImproperlyConfigured` exception in production if missing.
+- **`ALLOWED_HOSTS`**: Restricted to trusted domains (`live-class-1.onrender.com`, `.onrender.com`, `RENDER_EXTERNAL_HOSTNAME`). Wildcards (`*`) are strictly prohibited.
+- **`CSRF_TRUSTED_ORIGINS`**: HTTPS trusted origins configured for `https://live-class-1.onrender.com` and Render subdomains.
+- **HTTPS & SSL**: `SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')` configured for Render reverse proxy SSL termination; `SECURE_SSL_REDIRECT = True` in production.
+- **Secure Cookie Flags**: `SESSION_COOKIE_SECURE = True`, `CSRF_COOKIE_SECURE = True`, `SESSION_COOKIE_HTTPONLY = True`, and `SameSite='Lax'` prevent session theft and CSRF while preserving Google OAuth flows.
+- **HSTS**: `SECURE_HSTS_SECONDS = 31536000` (1 year). Subdomains and preload are opt-in via environment variables.
+- **Security Headers**: `SECURE_CONTENT_TYPE_NOSNIFF = True`, `SECURE_REFERRER_POLICY = 'same-origin'`, and `X_FRAME_OPTIONS = 'DENY'` (Clickjacking defense).
+- **Content-Security-Policy (CSP)**: Non-breaking policy allowing Bootstrap CDN, Google Fonts, Google OAuth, and LiveKit WebRTC (`wss:` and `https:`).
+- **Brute-Force Rate Limiting**: IP-based rate limiting on sign-in endpoints (max 5 failed attempts per 5 minutes) via cache.
+- **Open-Redirect Protection**: Strict validation with `url_has_allowed_host_and_scheme` on all `next` and redirect parameters.
+- **LiveKit Security**: Server-side JWT generation with 2-hour TTL; `LIVEKIT_API_SECRET` is never exposed to frontend code; students cannot choose arbitrary rooms or publish video without instructor role.
+- **Health Check**: Lightweight `/health/` probe returning HTTP 200 `{"status": "ok", "service": "TeachLive"}` without exposing credentials or internal traces.
+
+### 11.2 Render Deployment Commands
+- **Build Command**:
+  ```bash
+  ./build.sh
+  # Executes: pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate
+  ```
+- **Start Command**:
+  ```bash
+  gunicorn config.wsgi:application
+  # (or ./start.sh which auto-migrates before binding Gunicorn)
+  ```
+
+### 11.3 Production Database Note
+- **SQLite (Current Default)**: Render Web Services use an ephemeral filesystem unless a Render Persistent Disk is attached.
+- **PostgreSQL (Recommended for Persistence)**: Attach a Render PostgreSQL database and set `DATABASE_URL=postgresql://...`. Django automatically parses and applies SSL requirements (`sslmode=require`).
 
 
 

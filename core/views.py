@@ -47,6 +47,39 @@ def about_view(request):
     return render(request, 'core/about.html')
 
 
+def health_check_view(request):
+    """
+    Lightweight health check endpoint for Render / uptime monitoring.
+    Returns HTTP 200 with status 'ok' if application and database are healthy.
+    Never exposes internal configurations, credentials, or exception traces.
+    """
+    from django.db import connection
+    from django.http import JsonResponse
+    import logging
+
+    health_logger = logging.getLogger(__name__)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1;")
+            cursor.fetchone()
+    except Exception as e:
+        health_logger.error("Health probe database failure: %s", e)
+        return JsonResponse({"status": "unhealthy", "database": "unavailable"}, status=503)
+
+    return JsonResponse({
+        "status": "ok",
+        "service": "TeachLive",
+    }, status=200)
+
+
+def custom_400_view(request, exception=None):
+    return render(request, 'core/400.html', status=400)
+
+
+def custom_403_view(request, exception=None):
+    return render(request, 'core/403.html', status=403)
+
+
 def custom_404_view(request, exception=None):
     return render(request, 'core/404.html', status=404)
 
