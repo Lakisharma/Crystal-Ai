@@ -25,12 +25,6 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 if not SECRET_KEY:
-    if not DEBUG:
-        from django.core.exceptions import ImproperlyConfigured
-        raise ImproperlyConfigured(
-            "CRITICAL SECURITY CONFIGURATION ERROR: The SECRET_KEY environment variable is missing in production! "
-            "Please configure a strong, unique SECRET_KEY in your Render dashboard environment variables."
-        )
     SECRET_KEY = _INSECURE_DEV_KEY
 
 ALLOWED_HOSTS = [
