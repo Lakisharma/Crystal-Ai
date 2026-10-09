@@ -79,9 +79,12 @@ def build_redirect_uri(request) -> str:
     if custom_uri:
         return custom_uri
     try:
-        return request.build_absolute_uri(reverse('student:google_callback'))
+        uri = request.build_absolute_uri(reverse('student:google_callback'))
     except Exception:
-        return request.build_absolute_uri('/student/google/callback/')
+        uri = request.build_absolute_uri('/student/google/callback/')
+    if not settings.DEBUG and uri.startswith('http://') and not uri.startswith('http://localhost') and not uri.startswith('http://127.0.0.1'):
+        uri = 'https://' + uri[7:]
+    return uri
 
 
 def generate_google_auth_url(request, next_url: str = '') -> str:

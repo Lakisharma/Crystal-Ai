@@ -102,15 +102,28 @@ class StudentLoginView(View):
         return render(request, 'student/login.html', {
             'next_url': next_url,
             'google_configured': google_configured,
-            'page_title': 'Student Login - TeachLive',
+            'is_debug': settings.DEBUG,
+            'page_title': 'Student Login - Crystal AI',
         })
+
+
+def is_simulator_allowed() -> bool:
+    """Simulator mode is restricted strictly to local development and testing, never silently in production."""
+    import sys
+    if settings.DEBUG:
+        return True
+    if 'test' in sys.argv or getattr(settings, 'TESTING', False):
+        return True
+    if os.getenv('ALLOW_OAUTH_SIMULATOR', 'False').lower() in ('true', '1', 'yes'):
+        return True
+    return False
 
 
 class StudentGoogleAuthInitiateView(View):
     """
     Initiates Google OAuth 2.0 flow for students.
     Stores CSRF state and destination next_url in session.
-    Falls back to a local dev simulator if Google credentials are not set.
+    Falls back to a dev/testing simulator if Google credentials are not set.
     """
     def get(self, request):
         next_url = request.GET.get('next', '').strip()
@@ -120,14 +133,27 @@ class StudentGoogleAuthInitiateView(View):
             auth_url = generate_google_auth_url(request, next_url)
             return redirect(auth_url)
 
+        # In production mode, do not expose simulator mode
+        if not is_simulator_allowed():
+            messages.error(
+                request,
+                "Google Sign-In is not currently configured in production. "
+                "Please configure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Render Environment variables."
+            )
+            return redirect('student:login')
+
         # Development / Test Mode: Google OAuth credentials not yet configured
         return render(request, 'student/dev_google_simulator.html', {
             'next_url': next_url,
-            'page_title': 'Google OAuth Simulator - TeachLive',
+            'page_title': 'Google OAuth Simulator - Crystal AI',
         })
 
     def post(self, request):
         """Simulates Google OAuth sign-in during development / automated testing."""
+        # Never allow simulator authentication in production
+        if not is_simulator_allowed():
+            messages.error(request, "Google OAuth Simulator is disabled in production.")
+            return redirect('student:login')
         next_url = request.POST.get('next', '').strip() or request.session.pop('google_oauth_next', '')
         email = request.POST.get('email', '').strip().lower()
         name = request.POST.get('name', '').strip() or 'Demo Student'

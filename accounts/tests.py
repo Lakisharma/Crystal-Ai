@@ -411,3 +411,33 @@ class StudentAuthenticationAndGoogleTests(TestCase):
         res = self.client.post(reverse('student:google_login'), post_data, follow=False)
         self.assertEqual(res.status_code, 302)
         self.assertEqual(res.url, '/live/TL-MATH-101/')
+
+    def test_google_oauth_real_redirect_when_credentials_configured(self):
+        """When credentials are provided, login initiates real Google OAuth flow."""
+        from unittest.mock import patch
+        with patch.dict('os.environ', {
+            'GOOGLE_CLIENT_ID': 'test-prod-client-id.apps.googleusercontent.com',
+            'GOOGLE_CLIENT_SECRET': 'test-prod-secret',
+            'GOOGLE_REDIRECT_URI': 'https://crystal-ai-1ev8.onrender.com/student/google/callback/'
+        }):
+            res = self.client.get(reverse('student:google_login'))
+            self.assertEqual(res.status_code, 302)
+            self.assertTrue(res.url.startswith('https://accounts.google.com/o/oauth2/v2/auth'))
+            self.assertIn('client_id=test-prod-client-id.apps.googleusercontent.com', res.url)
+            self.assertIn('redirect_uri=https%3A%2F%2Fcrystal-ai-1ev8.onrender.com%2Fstudent%2Fgoogle%2Fcallback%2F', res.url)
+            self.assertIn('scope=openid+email+profile', res.url)
+
+    def test_google_oauth_simulator_blocked_in_production(self):
+        """Simulator mode is strictly blocked in production mode when unconfigured."""
+        from unittest.mock import patch
+        with patch('accounts.student_views.is_simulator_allowed', return_value=False):
+            with patch.dict('os.environ', {'GOOGLE_CLIENT_ID': '', 'GOOGLE_CLIENT_SECRET': ''}):
+                # GET should redirect to student:login with error message, not render simulator
+                res = self.client.get(reverse('student:google_login'), follow=True)
+                self.assertEqual(res.status_code, 200)
+                self.assertContains(res, 'Google Sign-In is not currently configured in production')
+
+                # POST should be blocked
+                post_res = self.client.post(reverse('student:google_login'), {'email': 'hacker@test.com'}, follow=True)
+                self.assertEqual(post_res.status_code, 200)
+                self.assertContains(post_res, 'Google OAuth Simulator is disabled in production')

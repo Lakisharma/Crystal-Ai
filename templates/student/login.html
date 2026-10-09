@@ -26,12 +26,21 @@
         <div class="card-body p-4 p-md-5">
 
           {% if not google_configured %}
-            <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-4 rounded-3 border-0 bg-info bg-opacity-10 text-dark">
-              <i class="bi bi-info-circle-fill text-info fs-5 me-2 flex-shrink-0"></i>
-              <div>
-                <strong>OAuth Simulator Mode:</strong> Ready for testing without live Google keys.
+            {% if is_debug %}
+              <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-4 rounded-3 border-0 bg-info bg-opacity-10 text-dark">
+                <i class="bi bi-info-circle-fill text-info fs-5 me-2 flex-shrink-0"></i>
+                <div>
+                  <strong>OAuth Simulator Mode (Dev):</strong> Ready for testing without live Google keys.
+                </div>
               </div>
-            </div>
+            {% else %}
+              <div class="alert alert-warning py-2 px-3 small d-flex align-items-center mb-4 rounded-3 border-0 bg-warning bg-opacity-10 text-dark">
+                <i class="bi bi-exclamation-triangle-fill text-warning fs-5 me-2 flex-shrink-0"></i>
+                <div>
+                  <strong>Notice:</strong> Google OAuth credentials (<code>GOOGLE_CLIENT_ID</code>) are not configured in production environment variables.
+                </div>
+              </div>
+            {% endif %}
           {% endif %}
 
           <!-- Continue with Google Button -->
