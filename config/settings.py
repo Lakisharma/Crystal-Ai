@@ -38,6 +38,12 @@ RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
+if 'crystal-ai-1ev8.onrender.com' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('crystal-ai-1ev8.onrender.com')
+
+if '*' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('*')
+
 if 'live-class-1.onrender.com' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('live-class-1.onrender.com')
 
@@ -57,6 +63,9 @@ if RENDER_EXTERNAL_HOSTNAME:
     _render_origin = f"https://{RENDER_EXTERNAL_HOSTNAME}"
     if _render_origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(_render_origin)
+
+if 'https://crystal-ai-1ev8.onrender.com' not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append('https://crystal-ai-1ev8.onrender.com')
 
 if 'https://live-class-1.onrender.com' not in CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS.append('https://live-class-1.onrender.com')
